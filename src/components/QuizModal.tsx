@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useGamification } from "@/context/GamificationContext";
+import { useFlashcards } from "@/context/FlashcardContext";
 import { Brain, X, Loader2, Sparkles } from "lucide-react";
 
 interface QuizData {
@@ -18,6 +19,7 @@ interface QuizModalProps {
 
 export default function QuizModal({ topic, isOpen, onClose }: QuizModalProps) {
   const { addXp } = useGamification();
+  const { addFlashcard } = useFlashcards();
   const [loading, setLoading] = useState(false);
   const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -137,6 +139,19 @@ export default function QuizModal({ topic, isOpen, onClose }: QuizModalProps) {
               <div className="mt-4 p-3 bg-red-500/20 text-red-400 rounded-lg text-center font-bold">
                 Ops, não foi dessa vez. Continue estudando!
               </div>
+            )}
+
+            {result && (
+              <button 
+                onClick={() => {
+                  const correctAnswer = quizData.options[quizData.correctAnswerIndex];
+                  addFlashcard(quizData.question, correctAnswer, topic);
+                  alert("Salvo no seu baralho de Flashcards para revisão!");
+                }}
+                className="mt-2 w-full p-3 bg-surface-border hover:bg-white/10 text-foreground/80 rounded-lg text-center font-medium transition-colors"
+              >
+                Salvar para Revisão (Flashcard)
+              </button>
             )}
           </div>
         )}

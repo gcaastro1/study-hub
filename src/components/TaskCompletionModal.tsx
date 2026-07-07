@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { X, BrainCircuit, Loader2, AlertCircle, Sparkles, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { useFlashcards } from "@/context/FlashcardContext";
+
 interface QuizQuestion {
   question: string;
   options: string[];
@@ -19,6 +21,7 @@ interface TaskCompletionModalProps {
 }
 
 export default function TaskCompletionModal({ isOpen, onClose, onSuccess, onFail, taskData }: TaskCompletionModalProps) {
+  const { addFlashcard } = useFlashcards();
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -196,9 +199,22 @@ export default function TaskCompletionModal({ isOpen, onClose, onSuccess, onFail
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-6 p-4 bg-red-500/20 border border-red-500/50 text-red-400 rounded-xl text-center font-bold text-lg"
+                  className="mt-6 flex flex-col gap-2"
                 >
-                  Ataque falhou! Você errou a pergunta. A tarefa não pode ser concluída ainda. Tente estudar um pouco mais!
+                  <div className="p-4 bg-red-500/20 border border-red-500/50 text-red-400 rounded-xl text-center font-bold text-lg">
+                    Ataque falhou! Você errou a pergunta. A tarefa não pode ser concluída ainda.
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const q = questions[currentIndex];
+                      const correctAnswer = q.options[q.correctAnswerIndex];
+                      addFlashcard(q.question, correctAnswer, taskData?.subject || "Boss Battle");
+                      alert("Salvo no seu baralho de Flashcards para revisão!");
+                    }}
+                    className="w-full p-2 bg-surface-border hover:bg-white/10 text-foreground/80 rounded-lg text-center font-medium transition-colors text-sm"
+                  >
+                    Salvar Questão para Revisão
+                  </button>
                 </motion.div>
               )}
               {feedback === "success" && (

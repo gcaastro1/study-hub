@@ -5,7 +5,7 @@ import { BrainCircuit, Clock, Timer, Trophy, Swords } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 
 export default function AnalyticsDashboard() {
-  const { stats, isLoaded } = useGamification();
+  const { stats, isLoaded, unlockedBadges } = useGamification();
 
   if (!isLoaded) {
     return (
@@ -163,6 +163,40 @@ export default function AnalyticsDashboard() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Vitrine de Troféus (Badges) */}
+      <div className="mt-8 mb-12">
+        <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <Trophy className="w-6 h-6 text-yellow-400" /> Vitrine de Troféus
+        </h3>
+        
+        {unlockedBadges.length === 0 ? (
+          <div className="glass-panel p-8 text-center border-dashed border-primary/30">
+            <Trophy className="w-12 h-12 text-foreground/20 mx-auto mb-4" />
+            <p className="text-foreground/50">Você ainda não desbloqueou nenhuma conquista. Continue estudando!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {unlockedBadges.map((badge) => (
+              <div 
+                key={badge.id}
+                className={`glass-panel p-4 flex flex-col items-center text-center border transition-transform hover:scale-105 ${badge.color}`}
+              >
+                <div className="w-16 h-16 rounded-full bg-black/20 flex items-center justify-center mb-3">
+                  <span className="text-3xl">🏆</span>
+                </div>
+                <h4 className="font-bold text-sm mb-1 text-white">{badge.name}</h4>
+                <p className="text-[11px] opacity-80 text-white/80 leading-tight">{badge.description}</p>
+                {badge.unlockedAt && (
+                  <p className="text-[10px] mt-3 opacity-50 text-white/60">
+                    {new Date(badge.unlockedAt).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

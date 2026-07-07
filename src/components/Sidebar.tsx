@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Store, BrainCircuit, BarChart2 } from "lucide-react";
+import { LayoutDashboard, Store, BrainCircuit, BarChart2, Layers, Globe } from "lucide-react";
 import { useGamification } from "@/context/GamificationContext";
 
 export default function Sidebar() {
@@ -12,8 +12,10 @@ export default function Sidebar() {
   const NAV_ITEMS = [
     { name: "Painel", href: "/", icon: LayoutDashboard },
     { name: "Analytics", href: "/analytics", icon: BarChart2 },
-    { name: "Loja", href: "/store", icon: Store },
+    { name: "Leaderboard", href: "/leaderboard", icon: Globe },
+    { name: "Flashcards", href: "/flashcards", icon: Layers },
     { name: "Quizzes", href: "/quizzes", icon: BrainCircuit },
+    { name: "Loja", href: "/store", icon: Store },
   ];
 
   return (

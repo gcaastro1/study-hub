@@ -22,19 +22,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       
-      // Se for a primeira vez do usuário, criar documento base
       if (currentUser) {
-        const userRef = doc(db, "users", currentUser.uid);
-        const userSnap = await getDoc(userRef);
-        
-        if (!userSnap.exists()) {
-          await setDoc(userRef, {
-            email: currentUser.email,
-            name: currentUser.displayName,
-            xp: 0,
-            level: 1,
-            createdAt: new Date()
-          });
+        try {
+          const userRef = doc(db, "users", currentUser.uid);
+          const userSnap = await getDoc(userRef);
+          
+          if (!userSnap.exists()) {
+            await setDoc(userRef, {
+              email: currentUser.email,
+              name: currentUser.displayName,
+              photoURL: currentUser.photoURL,
+              xp: 0,
+              level: 1,
+              createdAt: new Date()
+            });
+          } else {
+            // Update profile info on every login to ensure it's fresh
+            await setDoc(userRef, {
+              name: currentUser.displayName,
+              photoURL: currentUser.photoURL
+            }, { merge: true });
+          }
+        } catch (err) {
+          console.error("Erro ao carregar dados do usuário (Auth):", err);
         }
       }
       
