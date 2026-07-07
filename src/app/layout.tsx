@@ -4,7 +4,6 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { GamificationProvider } from "@/context/GamificationContext";
 import { FlashcardProvider } from "@/context/FlashcardContext";
-import Sidebar from "@/components/Sidebar";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -27,10 +26,7 @@ export default function RootLayout({
         <AuthProvider>
           <GamificationProvider>
             <FlashcardProvider>
-              <Sidebar />
-              <main className="flex-1 pb-20 md:pb-0 md:pl-64 min-h-screen p-4 md:p-8">
-                {children}
-              </main>
+              {children}
             </FlashcardProvider>
           </GamificationProvider>
         </AuthProvider>

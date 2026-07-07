@@ -292,7 +292,7 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
       xp, level, coins, streakLogs, unlockedThemes, equippedTheme, stats, unlockedBadges, 
       inventory, activeBoosts, addXp, updateStats, buyTheme, buyItem, activateItem, equipTheme, isLoaded 
     }}>
-      <div data-theme={equippedTheme} className="h-full">
+      <div data-theme={equippedTheme} className="w-full min-h-screen flex flex-col md:flex-row">
         {children}
       </div>
     </GamificationContext.Provider>

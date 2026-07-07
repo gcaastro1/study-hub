@@ -10,7 +10,7 @@ export default function Sidebar() {
   const { equippedTheme } = useGamification();
 
   const NAV_ITEMS = [
-    { name: "Painel", href: "/", icon: LayoutDashboard },
+    { name: "Painel", href: "/dashboard", icon: LayoutDashboard },
     { name: "Analytics", href: "/analytics", icon: BarChart2 },
     { name: "Leaderboard", href: "/leaderboard", icon: Globe },
     { name: "Flashcards", href: "/flashcards", icon: Layers },
