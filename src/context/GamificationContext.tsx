@@ -194,12 +194,12 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
     
     try {
       const docRef = doc(db, "users", user.uid);
-      await updateDoc(docRef, {
+      await setDoc(docRef, {
         xp: newXp,
         coins: newCoins,
         level: newLevel,
         streakLogs: arrayUnion(today)
-      });
+      }, { merge: true });
     } catch (error) {
       console.error("Erro ao salvar XP:", error);
     }
@@ -216,10 +216,10 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
 
     try {
       const docRef = doc(db, "users", user.uid);
-      await updateDoc(docRef, {
+      await setDoc(docRef, { 
         coins: newCoins,
         unlockedThemes: arrayUnion(themeId)
-      });
+      }, { merge: true });
       return true;
     } catch (error) {
       console.error("Erro ao comprar tema:", error);
@@ -239,7 +239,7 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
     
     try {
       const docRef = doc(db, "users", user.uid);
-      await updateDoc(docRef, { coins: newCoins, inventory: newInventory });
+      await setDoc(docRef, { coins: newCoins, inventory: newInventory }, { merge: true });
       return true;
     } catch (error) {
       console.error("Erro ao comprar item:", error);
@@ -264,7 +264,7 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
     
     try {
       const docRef = doc(db, "users", user.uid);
-      await updateDoc(docRef, { inventory: newInventory, activeBoosts: newBoosts });
+      await setDoc(docRef, { inventory: newInventory, activeBoosts: newBoosts }, { merge: true });
       return true;
     } catch (error) {
       console.error("Erro ao ativar item:", error);
@@ -279,9 +279,9 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
 
     try {
       const docRef = doc(db, "users", user.uid);
-      await updateDoc(docRef, {
+      await setDoc(docRef, {
         equippedTheme: themeId
-      });
+      }, { merge: true });
     } catch (error) {
       console.error("Erro ao equipar tema:", error);
     }
