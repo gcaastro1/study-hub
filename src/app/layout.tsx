@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/context/AuthContext";
+import { GamificationProvider } from "@/context/GamificationContext";
+import Sidebar from "@/components/Sidebar";
 
 const outfit = Outfit({
   variable: "--font-sans",
@@ -22,7 +25,16 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${outfit.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col md:flex-row">
+        <AuthProvider>
+          <GamificationProvider>
+            <Sidebar />
+            <main className="flex-1 pb-20 md:pb-0 md:pl-64 min-h-screen">
+              {children}
+            </main>
+          </GamificationProvider>
+        </AuthProvider>
+      </body>
     </html>
   );
 }
