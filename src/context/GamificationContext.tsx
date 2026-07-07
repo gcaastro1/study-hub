@@ -5,6 +5,14 @@ import { useAuth } from "./AuthContext";
 import { doc, getDoc, updateDoc, setDoc, arrayUnion } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
+interface Stats {
+  totalStudyTime: number; // in seconds
+  pomodorosCompleted: number;
+  bossBattlesWon: number;
+  bossBattlesLost: number;
+  xpPerSubject: Record<string, number>;
+}
+
 interface GamificationState {
   xp: number;
   level: number;
@@ -12,11 +20,21 @@ interface GamificationState {
   streakLogs: string[];
   unlockedThemes: string[];
   equippedTheme: string;
-  addXp: (amount: number) => Promise<void>;
+  stats: Stats;
+  addXp: (amount: number, subject?: string) => Promise<void>;
+  updateStats: (updates: Partial<Stats>) => Promise<void>;
   buyTheme: (themeId: string, cost: number) => Promise<boolean>;
   equipTheme: (themeId: string) => Promise<void>;
   isLoaded: boolean;
 }
+
+const defaultStats: Stats = {
+  totalStudyTime: 0,
+  pomodorosCompleted: 0,
+  bossBattlesWon: 0,
+  bossBattlesLost: 0,
+  xpPerSubject: {},
+};
 
 const GamificationContext = createContext<GamificationState | undefined>(undefined);
 
@@ -28,6 +46,7 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
   const [streakLogs, setStreakLogs] = useState<string[]>([]);
   const [unlockedThemes, setUnlockedThemes] = useState<string[]>(["default"]);
   const [equippedTheme, setEquippedTheme] = useState("default");
+  const [stats, setStats] = useState<Stats>(defaultStats);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -40,6 +59,7 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
       setStreakLogs([]);
       setUnlockedThemes(["default"]);
       setEquippedTheme("default");
+      setStats(defaultStats);
       setIsLoaded(true);
       return;
     }
@@ -53,10 +73,11 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
           const data = docSnap.data();
           setXp(data.xp || 0);
           setLevel(data.level || 1);
-          setCoins(data.coins ?? (data.xp || 0)); // Initialize coins if it doesn't exist
+          setCoins(data.coins ?? (data.xp || 0));
           setStreakLogs(data.streakLogs || []);
           setUnlockedThemes(data.unlockedThemes || ["default"]);
           setEquippedTheme(data.equippedTheme || "default");
+          setStats(data.stats || defaultStats);
         }
         setIsLoaded(true);
       } catch (error) {
@@ -67,7 +88,33 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
     loadData();
   }, [user, authLoading]);
 
-  const addXp = async (amount: number) => {
+  const updateStats = async (updates: Partial<Stats>) => {
+    if (!user) return;
+    
+    const newStats = { ...stats };
+    
+    if (updates.totalStudyTime) newStats.totalStudyTime += updates.totalStudyTime;
+    if (updates.pomodorosCompleted) newStats.pomodorosCompleted += updates.pomodorosCompleted;
+    if (updates.bossBattlesWon) newStats.bossBattlesWon += updates.bossBattlesWon;
+    if (updates.bossBattlesLost) newStats.bossBattlesLost += updates.bossBattlesLost;
+    
+    if (updates.xpPerSubject) {
+      Object.entries(updates.xpPerSubject).forEach(([subject, amount]) => {
+        newStats.xpPerSubject[subject] = (newStats.xpPerSubject[subject] || 0) + amount;
+      });
+    }
+
+    setStats(newStats);
+
+    try {
+      const docRef = doc(db, "users", user.uid);
+      await setDoc(docRef, { stats: newStats }, { merge: true });
+    } catch (error) {
+      console.error("Erro ao salvar stats:", error);
+    }
+  };
+
+  const addXp = async (amount: number, subject?: string) => {
     if (!user) return;
     
     const newXp = xp + amount;
@@ -80,6 +127,10 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
     if (newLevel > level) setLevel(newLevel);
     if (!streakLogs.includes(today)) {
       setStreakLogs((prev) => [...prev, today]);
+    }
+    
+    if (subject) {
+      updateStats({ xpPerSubject: { [subject]: amount } });
     }
     
     try {
@@ -133,7 +184,7 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
   };
 
   return (
-    <GamificationContext.Provider value={{ xp, level, coins, streakLogs, unlockedThemes, equippedTheme, addXp, buyTheme, equipTheme, isLoaded }}>
+    <GamificationContext.Provider value={{ xp, level, coins, streakLogs, unlockedThemes, equippedTheme, stats, addXp, updateStats, buyTheme, equipTheme, isLoaded }}>
       <div data-theme={equippedTheme} className="h-full">
         {children}
       </div>

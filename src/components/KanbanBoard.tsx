@@ -20,7 +20,7 @@ interface Task {
 }
 
 export default function KanbanBoard() {
-  const { addXp } = useGamification();
+  const { addXp, updateStats } = useGamification();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   
@@ -89,7 +89,6 @@ export default function KanbanBoard() {
     });
   };
 
-  // Called ONLY when the user defeats the Boss Battle
   const confirmTaskCompletion = () => {
     if (!pendingCompletionTask) return;
     
@@ -101,7 +100,8 @@ export default function KanbanBoard() {
     // Add Boss Battle bonus XP!
     xpReward += 100;
     
-    addXp(xpReward);
+    addXp(xpReward, task.subject || "Geral");
+    updateStats({ bossBattlesWon: 1 });
 
     setTasks((prev) => {
       const taskIndex = prev.findIndex((t) => t.id === task.id);
@@ -113,6 +113,10 @@ export default function KanbanBoard() {
     });
 
     setPendingCompletionTask(null);
+  };
+
+  const failTaskCompletion = () => {
+    updateStats({ bossBattlesLost: 1 });
   };
 
   const openQuiz = (topic: string) => {
@@ -281,6 +285,7 @@ export default function KanbanBoard() {
         isOpen={!!pendingCompletionTask}
         onClose={() => setPendingCompletionTask(null)}
         onSuccess={confirmTaskCompletion}
+        onFail={failTaskCompletion}
         taskData={pendingCompletionTask}
       />
     </>

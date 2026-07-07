@@ -6,7 +6,7 @@ import { Play, Pause, RotateCcw, Timer, Music, CloudRain, VolumeX } from "lucide
 import { motion } from "framer-motion";
 
 export default function PomodoroTimer() {
-  const { addXp } = useGamification();
+  const { addXp, updateStats } = useGamification();
   
   const WORK_TIME = 25 * 60;
   const BREAK_TIME = 5 * 60;
@@ -43,7 +43,11 @@ export default function PomodoroTimer() {
       if (isRunning && timeLeft === 0) {
         setIsRunning(false);
         if (!isBreak) {
-          addXp(50);
+          addXp(100);
+          updateStats({ 
+            pomodorosCompleted: 1,
+            totalStudyTime: WORK_TIME
+          });
           setIsBreak(true);
           setTimeLeft(BREAK_TIME);
         } else {
@@ -54,7 +58,7 @@ export default function PomodoroTimer() {
     }
     
     return () => clearInterval(interval);
-  }, [isRunning, timeLeft, isBreak, addXp, soundscape]);
+  }, [isRunning, timeLeft, isBreak, addXp, updateStats, soundscape]);
 
   const toggleTimer = () => setIsRunning(!isRunning);
   

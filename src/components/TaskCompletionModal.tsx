@@ -14,10 +14,11 @@ interface TaskCompletionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  onFail: () => void;
   taskData: { title: string; description?: string; subject?: string } | null;
 }
 
-export default function TaskCompletionModal({ isOpen, onClose, onSuccess, taskData }: TaskCompletionModalProps) {
+export default function TaskCompletionModal({ isOpen, onClose, onSuccess, onFail, taskData }: TaskCompletionModalProps) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -80,8 +81,8 @@ export default function TaskCompletionModal({ isOpen, onClose, onSuccess, taskDa
     } else {
       setFeedback("error");
       setTimeout(() => {
-        // Failed the boss battle
-        onClose(); // Will close the modal without triggering onSuccess
+        onFail();
+        onClose();
       }, 3000);
     }
   };
