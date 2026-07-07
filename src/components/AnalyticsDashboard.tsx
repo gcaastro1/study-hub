@@ -5,9 +5,14 @@ import { BrainCircuit, Clock, Timer, Trophy, Swords, Shield, Shirt } from "lucid
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
 import { RPG_CLASSES, RPGClassId } from "@/lib/rpgClasses";
 import { EQUIPMENTS } from "@/app/(app)/store/page";
+import { TITLES } from "@/lib/titles";
+import Avatar from "react-nice-avatar";
+import AvatarCreatorModal from "./AvatarCreatorModal";
+import { useState } from "react";
 
 export default function AnalyticsDashboard() {
-  const { stats, isLoaded, unlockedBadges, attributes, rpgClass, equipment } = useGamification();
+  const { stats, isLoaded, unlockedBadges, attributes, rpgClass, equipment, activeTitle, unlockedTitles, equipTitle, avatarConfig } = useGamification();
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
 
   if (!isLoaded) {
     return (
@@ -170,9 +175,29 @@ export default function AnalyticsDashboard() {
       {/* RPG Stats Section */}
       {rpgClass && (
         <div className="mt-4 mb-4">
-          <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <Swords className="w-6 h-6 text-primary" /> Seus Atributos: {RPG_CLASSES[rpgClass as RPGClassId]?.name}
-          </h3>
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+            <h3 className="text-2xl font-bold flex items-center gap-2">
+              <Swords className="w-6 h-6 text-primary" /> Seus Atributos: {RPG_CLASSES[rpgClass as RPGClassId]?.name}
+            </h3>
+            
+            {unlockedTitles.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-foreground/60">Título:</span>
+                <select 
+                  className="bg-black/20 border border-white/10 rounded-lg p-2 text-sm text-primary font-bold focus:outline-none"
+                  value={activeTitle || ""}
+                  onChange={(e) => equipTitle(e.target.value || null)}
+                >
+                  <option value="">Sem Título</option>
+                  {unlockedTitles.map(tId => {
+                    const t = TITLES.find(t => t.id === tId);
+                    return t ? <option key={t.id} value={t.id}>{t.name}</option> : null;
+                  })}
+                </select>
+              </div>
+            )}
+          </div>
+          
           <div className="glass-panel p-6 flex flex-col md:flex-row items-center gap-8">
             <div className="w-full md:w-1/2 h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -220,56 +245,45 @@ export default function AnalyticsDashboard() {
           {/* Avatar Equipments */}
           <div className="mt-8">
             <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <Shield className="w-5 h-5 text-primary" /> Equipamentos do Avatar
+              <Shield className="w-5 h-5 text-primary" /> Seu Personagem
             </h3>
             <div className="glass-panel p-8 flex flex-col md:flex-row items-center justify-center gap-12">
-              {/* Paper Doll */}
-              <div className="relative w-48 h-64 flex flex-col items-center justify-center bg-black/20 rounded-xl border border-white/5">
-                {/* Cabeça */}
-                <div className={`absolute top-4 w-16 h-16 rounded-lg border-2 flex items-center justify-center z-20 ${equipment?.head ? 'border-primary bg-primary/20' : 'border-dashed border-white/20 bg-white/5'}`}>
-                  {equipment?.head ? (
-                    <Shield className="w-8 h-8 text-primary drop-shadow-[0_0_8px_rgba(var(--primary),0.8)]" /> // Fallback icon
-                  ) : <span className="text-xs text-white/30">Cabeça</span>}
+              
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full p-2 bg-gradient-to-tr from-primary/30 to-purple-500/30 shadow-[0_0_30px_rgba(var(--primary),0.2)]">
+                  {/* @ts-ignore */}
+                  <Avatar className="w-full h-full drop-shadow-2xl" {...avatarConfig} />
+                  
+                  {/* Custom Overlays (Equipments) */}
+                  {equipment?.head && (
+                    <div className="absolute top-[-10px] left-1/2 transform -translate-x-1/2 w-24 h-24 z-20 opacity-90 drop-shadow-lg flex items-center justify-center text-3xl">
+                      {EQUIPMENTS.find(e => e.id === equipment.head)?.name.includes("Coroa") ? "👑" : "🛡️"}
+                    </div>
+                  )}
+                  {equipment?.weapon && (
+                    <div className="absolute top-1/2 -right-4 transform -translate-y-1/2 w-16 h-16 z-30 opacity-90 drop-shadow-lg flex items-center justify-center text-3xl">
+                      {EQUIPMENTS.find(e => e.id === equipment.weapon)?.name.includes("Cajado") ? "🪄" : "⚔️"}
+                    </div>
+                  )}
                 </div>
                 
-                {/* Corpo */}
-                <div className={`absolute top-24 w-20 h-28 rounded-lg border-2 flex items-center justify-center z-10 ${equipment?.body ? 'border-primary bg-primary/20' : 'border-dashed border-white/20 bg-white/5'}`}>
-                  {equipment?.body ? (
-                    <Shirt className="w-10 h-10 text-primary drop-shadow-[0_0_8px_rgba(var(--primary),0.8)]" />
-                  ) : <span className="text-xs text-white/30">Corpo</span>}
-                </div>
-
-                {/* Arma */}
-                <div className={`absolute top-28 -right-8 w-12 h-24 rounded-lg border-2 flex items-center justify-center z-30 ${equipment?.weapon ? 'border-primary bg-primary/20' : 'border-dashed border-white/20 bg-white/5'}`}>
-                  {equipment?.weapon ? (
-                    <Swords className="w-6 h-6 text-primary drop-shadow-[0_0_8px_rgba(var(--primary),0.8)]" />
-                  ) : <span className="text-[10px] text-white/30">Arma</span>}
-                </div>
+                <button 
+                  onClick={() => setIsAvatarModalOpen(true)}
+                  className="px-6 py-2 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded-full font-bold transition-all mt-2"
+                >
+                  Modificar Aparência
+                </button>
               </div>
               
               <div className="flex flex-col gap-4 max-w-sm">
-                <p className="text-foreground/60 text-sm">
-                  Seu avatar visual. Compre itens na Loja para equipar nas suas jornadas diárias e ficar mais forte.
+                <p className="text-muted-foreground text-sm">
+                  Personalize sua aparência base! Óculos, cabelos, formato do rosto e muito mais. 
+                  Você ainda pode equipar "Itens Especiais" que se sobrepõem ao seu Avatar!
                 </p>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center bg-surface-border p-3 rounded text-sm">
-                    <span className="text-foreground/50">Cabeça</span>
-                    <span className="font-bold text-primary">
-                      {equipment?.head ? EQUIPMENTS.find(e => e.id === equipment.head)?.name || "Equipado" : "Vazio"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center bg-surface-border p-3 rounded text-sm">
-                    <span className="text-foreground/50">Corpo</span>
-                    <span className="font-bold text-primary">
-                      {equipment?.body ? EQUIPMENTS.find(e => e.id === equipment.body)?.name || "Equipado" : "Vazio"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center bg-surface-border p-3 rounded text-sm">
-                    <span className="text-foreground/50">Arma</span>
-                    <span className="font-bold text-primary">
-                      {equipment?.weapon ? EQUIPMENTS.find(e => e.id === equipment.weapon)?.name || "Equipada" : "Vazia"}
-                    </span>
-                  </div>
+                <div className="space-y-2 mt-2">
+                  {equipment?.head && <div className="text-sm bg-black/20 p-2 rounded border border-white/5">🧢 Cabeça: {EQUIPMENTS.find(e => e.id === equipment.head)?.name}</div>}
+                  {equipment?.body && <div className="text-sm bg-black/20 p-2 rounded border border-white/5">👕 Corpo: {EQUIPMENTS.find(e => e.id === equipment.body)?.name}</div>}
+                  {equipment?.weapon && <div className="text-sm bg-black/20 p-2 rounded border border-white/5">⚔️ Arma: {EQUIPMENTS.find(e => e.id === equipment.weapon)?.name}</div>}
                 </div>
               </div>
             </div>
@@ -310,6 +324,12 @@ export default function AnalyticsDashboard() {
           </div>
         )}
       </div>
+      {isAvatarModalOpen && (
+        <AvatarCreatorModal 
+          isOpen={isAvatarModalOpen} 
+          onClose={() => setIsAvatarModalOpen(false)} 
+        />
+      )}
     </div>
   );
 }

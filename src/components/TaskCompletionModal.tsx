@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { X, BrainCircuit, Loader2, AlertCircle, Sparkles, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { playTaskComplete } from "@/lib/audio";
 
 import { useFlashcards } from "@/context/FlashcardContext";
 
@@ -32,6 +33,7 @@ export default function TaskCompletionModal({ isOpen, onClose, onSuccess, onFail
 
   useEffect(() => {
     if (isOpen && taskData) {
+      playTaskComplete();
       setQuestions([]);
       setCurrentIndex(0);
       setLoading(true);

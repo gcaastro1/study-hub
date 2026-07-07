@@ -6,7 +6,9 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { Trophy, Medal, Star, Shield, Swords, Feather, Flame, Hexagon } from "lucide-react";
 import { FACTIONS, FactionId } from "@/lib/factions";
+import { TITLES } from "@/lib/titles";
 import Image from "next/image";
+import WorldBossWidget from "@/components/WorldBossWidget";
 
 interface LeaderboardUser {
   id: string;
@@ -15,6 +17,7 @@ interface LeaderboardUser {
   xp: number;
   level: number;
   faction: FactionId | null;
+  activeTitle?: string | null;
 }
 
 export default function LeaderboardPage() {
@@ -39,6 +42,7 @@ export default function LeaderboardPage() {
             xp: data.xp || 0,
             level: data.level || 1,
             faction: data.faction || null,
+            activeTitle: data.activeTitle || null,
           });
         });
         
@@ -91,6 +95,8 @@ export default function LeaderboardPage() {
           </p>
         </div>
       </header>
+
+      <WorldBossWidget />
 
       {/* Tabs */}
       <div className="flex bg-black/20 rounded-xl p-1 mb-2">

@@ -120,6 +120,25 @@ export default function PomodoroTimer() {
           </div>
         </div>
 
+        {/* Mascot Area */}
+        <div className="relative w-32 h-32 mb-4">
+          <div className={`absolute inset-0 transition-opacity duration-1000 ${isRunning && !isBreak ? 'opacity-100' : 'opacity-0'} bg-primary/20 rounded-full blur-2xl`} />
+          <img 
+            src="/pet_transparent.png" 
+            alt="Mascote"
+            className={`w-full h-full object-contain mix-blend-multiply transition-all duration-1000 ${
+              isRunning && !isBreak 
+                ? 'animate-bounce' 
+                : isBreak 
+                  ? 'grayscale opacity-70 animate-pulse'
+                  : 'grayscale opacity-50'
+            }`}
+          />
+          {isBreak && (
+            <div className="absolute -top-2 right-0 text-xl animate-bounce delay-150">💤</div>
+          )}
+        </div>
+
         <div className="text-6xl font-black mb-8 tracking-tighter">
           {formatTime(timeLeft)}
         </div>

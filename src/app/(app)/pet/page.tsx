@@ -48,10 +48,10 @@ export default function PetSanctuaryPage() {
             <div className="absolute inset-0 bg-emerald-400/20 rounded-full blur-3xl animate-pulse" />
             <div className="relative w-full h-full animate-bounce-slow">
               <Image 
-                src="/pet.png" 
+                src="/pet_transparent.png" 
                 alt="Mascote Dragão Pixel Art" 
                 fill 
-                className="object-contain"
+                className="object-contain mix-blend-multiply"
                 priority
               />
             </div>

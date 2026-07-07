@@ -2,11 +2,14 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
-import { doc, getDoc, updateDoc, setDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, updateDoc, setDoc, arrayUnion, increment } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 import { checkBadges, Badge } from "@/lib/badges";
+import { checkNewTitles, TITLES } from "@/lib/titles";
+import { playDrop, playLevelUp, playBuy } from "@/lib/audio";
 import { RPG_CLASSES, RPGClassId } from "@/lib/rpgClasses";
+import { AvatarConfig, DEFAULT_AVATAR } from "@/lib/avatar";
 
 interface Stats {
   totalStudyTime: number; // in seconds
@@ -39,6 +42,18 @@ interface GamificationState {
   clearDungeon: () => Promise<void>;
   equipment: { head: string | null; body: string | null; weapon: string | null };
   equipItem: (slot: "head" | "body" | "weapon", itemId: string | null) => Promise<void>;
+  
+  // V5 Titles
+  activeTitle: string | null;
+  unlockedTitles: string[];
+  equipTitle: (title: string | null) => Promise<void>;
+  
+  // V6 Avatar
+  avatarConfig: AvatarConfig;
+  unlockedAvatarItems: string[];
+  updateAvatarConfig: (config: Partial<AvatarConfig>) => Promise<void>;
+  buyAvatarItem: (itemId: string, cost: number) => Promise<boolean>;
+
   addXp: (amount: number, subject?: string, actionType?: string, actionPayload?: any) => Promise<void>;
   updateStats: (updates: Partial<Stats>, actionType?: string, actionPayload?: any) => Promise<void>;
   buyTheme: (themeId: string, cost: number) => Promise<boolean>;
@@ -77,6 +92,13 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
   const [dailyDungeonCleared, setDailyDungeonCleared] = useState<string | null>(null);
   const [attributes, setAttributes] = useState({ strength: 0, wisdom: 0, charisma: 0, dexterity: 0 });
   const [equipment, setEquipment] = useState<{ head: string | null; body: string | null; weapon: string | null }>({ head: null, body: null, weapon: null });
+  
+  const [activeTitle, setActiveTitle] = useState<string | null>(null);
+  const [unlockedTitles, setUnlockedTitles] = useState<string[]>([]);
+
+  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(DEFAULT_AVATAR);
+  const [unlockedAvatarItems, setUnlockedAvatarItems] = useState<string[]>([]);
+
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -98,6 +120,10 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
       setDailyDungeonCleared(null);
       setAttributes({ strength: 0, wisdom: 0, charisma: 0, dexterity: 0 });
       setEquipment({ head: null, body: null, weapon: null });
+      setActiveTitle(null);
+      setUnlockedTitles([]);
+      setAvatarConfig(DEFAULT_AVATAR);
+      setUnlockedAvatarItems([]);
       setIsLoaded(true);
       return;
     }
@@ -124,6 +150,10 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
           setDailyDungeonCleared(data.dailyDungeonCleared || null);
           setAttributes(data.attributes || { strength: 0, wisdom: 0, charisma: 0, dexterity: 0 });
           setEquipment(data.equipment || { head: null, body: null, weapon: null });
+          setActiveTitle(data.activeTitle || null);
+          setUnlockedTitles(data.unlockedTitles || []);
+          setAvatarConfig(data.avatarConfig || DEFAULT_AVATAR);
+          setUnlockedAvatarItems(data.unlockedAvatarItems || []);
         }
         setIsLoaded(true);
       } catch (error) {
@@ -185,6 +215,20 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
     try {
       const docRef = doc(db, "users", user.uid);
       await setDoc(docRef, { stats: newStats }, { merge: true });
+      
+      const newEarnedTitles = checkNewTitles(newStats, unlockedTitles);
+      if (newEarnedTitles.length > 0) {
+        const updatedTitles = [...unlockedTitles, ...newEarnedTitles];
+        setUnlockedTitles(updatedTitles);
+        await setDoc(docRef, { unlockedTitles: updatedTitles }, { merge: true });
+        
+        newEarnedTitles.forEach(tId => {
+          const tData = TITLES.find(t => t.id === tId);
+          if (tData) {
+            alert(`📜 Novo Título Desbloqueado: ${tData.name}!\n${tData.description}`);
+          }
+        });
+      }
     } catch (error) {
       console.error("Erro ao salvar stats:", error);
     }
@@ -204,12 +248,18 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
     
     const newXp = xp + finalAmount;
     const newCoins = coins + finalAmount;
-    const newLevel = Math.floor(newXp / 500) + 1;
+    let newLevel = level;
+    
+    if (Math.floor(newXp / 500) + 1 > level) {
+      newLevel = Math.floor(newXp / 500) + 1;
+      setLevel(newLevel);
+      playLevelUp(); // Play level up sound
+    }
+    
     const today = new Date().toISOString().split("T")[0];
     
     setXp(newXp);
     setCoins(newCoins);
-    if (newLevel > level) setLevel(newLevel);
     if (!streakLogs.includes(today)) {
       setStreakLogs((prev) => [...prev, today]);
     }
@@ -248,6 +298,24 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
       processBadges(stats, newXp, actionType, actionPayload);
     }
     
+    // Material Drop Chance (15%)
+    let dropMsg = "";
+    let newInventory = { ...inventory };
+    if (Math.random() < 0.15) {
+      const materials = ["iron_fragment", "magic_crystal", "leather_scrap"];
+      const dropped = materials[Math.floor(Math.random() * materials.length)];
+      newInventory[dropped] = (newInventory[dropped] || 0) + 1;
+      setInventory(newInventory);
+      
+      const matNames: Record<string, string> = {
+        iron_fragment: "Fragmento de Ferro",
+        magic_crystal: "Cristal Mágico",
+        leather_scrap: "Pedaço de Couro",
+      };
+      dropMsg = `\nVocê encontrou 1x ${matNames[dropped]}!`;
+      playDrop();
+    }
+    
     try {
       const docRef = doc(db, "users", user.uid);
       await setDoc(docRef, {
@@ -255,10 +323,23 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
         coins: newCoins,
         level: newLevel,
         streakLogs: arrayUnion(today),
-        attributes: newAttributes
+        attributes: newAttributes,
+        inventory: newInventory
       }, { merge: true });
+      
+      if (dropMsg) {
+        alert(dropMsg);
+      }
     } catch (error) {
       console.error("Erro ao salvar XP:", error);
+    }
+    
+    // Damage World Boss
+    try {
+      const bossRef = doc(db, "server", "world_boss");
+      await updateDoc(bossRef, { hp: increment(-10) });
+    } catch (error) {
+      console.error("Erro ao causar dano no Chefão:", error);
     }
   };
 
@@ -277,6 +358,7 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
         coins: newCoins,
         unlockedThemes: arrayUnion(themeId)
       }, { merge: true });
+      playBuy();
       return true;
     } catch (error) {
       console.error("Erro ao comprar tema:", error);
@@ -297,6 +379,7 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
     try {
       const docRef = doc(db, "users", user.uid);
       await setDoc(docRef, { coins: newCoins, inventory: newInventory }, { merge: true });
+      playBuy();
       return true;
     } catch (error) {
       console.error("Erro ao comprar item:", error);
@@ -345,7 +428,7 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
   };
 
   const selectClass = async (classId: string) => {
-    if (!user || rpgClass) return; // Só pode escolher uma vez por enquanto
+    if (!user || rpgClass) return; 
     
     const selectedClass = RPG_CLASSES[classId as RPGClassId];
     if (!selectedClass) return;
@@ -378,7 +461,7 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
   const clearDungeon = async () => {
     if (!user) return;
     const today = new Date().toISOString().split("T")[0];
-    if (dailyDungeonCleared === today) return; // Already cleared today
+    if (dailyDungeonCleared === today) return; 
     
     setDailyDungeonCleared(today);
     try {
@@ -401,10 +484,59 @@ export const GamificationProvider = ({ children }: { children: React.ReactNode }
     }
   };
 
+  const equipTitle = async (titleId: string | null) => {
+    if (!user) return;
+    setActiveTitle(titleId);
+    try {
+      const docRef = doc(db, "users", user.uid);
+      await setDoc(docRef, { activeTitle: titleId }, { merge: true });
+    } catch (error) {
+      console.error("Erro ao equipar título:", error);
+    }
+  };
+
+  const updateAvatarConfig = async (newConfig: Partial<AvatarConfig>) => {
+    if (!user) return;
+    const updated = { ...avatarConfig, ...newConfig };
+    setAvatarConfig(updated);
+    
+    try {
+      const docRef = doc(db, "users", user.uid);
+      await setDoc(docRef, { avatarConfig: updated }, { merge: true });
+    } catch (error) {
+      console.error("Erro ao atualizar avatar config:", error);
+    }
+  };
+
+  const buyAvatarItem = async (itemId: string, cost: number) => {
+    if (!user || coins < cost || unlockedAvatarItems.includes(itemId)) return false;
+
+    const newCoins = coins - cost;
+    const newUnlocked = [...unlockedAvatarItems, itemId];
+    
+    setCoins(newCoins);
+    setUnlockedAvatarItems(newUnlocked);
+    
+    try {
+      const docRef = doc(db, "users", user.uid);
+      await setDoc(docRef, { 
+        coins: newCoins,
+        unlockedAvatarItems: newUnlocked
+      }, { merge: true });
+      playBuy();
+      return true;
+    } catch (error) {
+      console.error("Erro ao comprar item de avatar:", error);
+      return false;
+    }
+  };
+
   return (
     <GamificationContext.Provider value={{ 
       xp, level, coins, streakLogs, unlockedThemes, equippedTheme, stats, unlockedBadges, 
       inventory, activeBoosts, rpgClass, attributes, faction, dailyDungeonCleared, equipment, 
+      activeTitle, unlockedTitles, equipTitle,
+      avatarConfig, unlockedAvatarItems, updateAvatarConfig, buyAvatarItem,
       clearDungeon, equipItem, addXp, updateStats, buyTheme, buyItem, activateItem, equipTheme, selectClass, selectFaction, isLoaded 
     }}>
       <div data-theme={equippedTheme} className="w-full min-h-screen flex flex-col md:flex-row">
@@ -419,5 +551,3 @@ export const useGamification = () => {
   if (!context) throw new Error("useGamification must be used within GamificationProvider");
   return context;
 };
-
-

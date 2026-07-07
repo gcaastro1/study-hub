@@ -1,7 +1,7 @@
 "use client";
 
 import { useGamification } from "@/context/GamificationContext";
-import { Coins, Lock, Check, Zap, Shield, Sparkles, Swords, Wand2, Shirt } from "lucide-react";
+import { Coins, Lock, Check, Zap, Shield, Sparkles, Swords, Wand2, Shirt, Flame } from "lucide-react";
 import { useState } from "react";
 
 const THEMES = [
@@ -84,7 +84,7 @@ export default function StorePage() {
     equipItem
   } = useGamification();
 
-  const [activeTab, setActiveTab] = useState<"themes" | "powerups" | "equipments">("themes");
+  const [activeTab, setActiveTab] = useState<"themes" | "powerups" | "equipments" | "forja">("themes");
 
   const handleBuyTheme = async (themeId: string, cost: number) => {
     if (confirm(`Comprar este tema por ${cost} moedas?`)) {
@@ -156,6 +156,12 @@ export default function StorePage() {
           className={`pb-4 px-4 font-bold transition-colors ${activeTab === "equipments" ? "text-primary border-b-2 border-primary" : "text-foreground/50 hover:text-foreground"}`}
         >
           Equipamentos
+        </button>
+        <button 
+          onClick={() => setActiveTab("forja")}
+          className={`pb-4 px-4 font-bold transition-colors ${activeTab === "forja" ? "text-orange-500 border-b-2 border-orange-500" : "text-foreground/50 hover:text-foreground"}`}
+        >
+          Forja
         </button>
       </div>
 
@@ -313,6 +319,44 @@ export default function StorePage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {activeTab === "forja" && (
+        <div className="glass-panel p-8 flex flex-col items-center justify-center text-center">
+          <Flame className="w-16 h-16 text-orange-500 mb-4 animate-pulse" />
+          <h2 className="text-2xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
+            A Forja Arcana
+          </h2>
+          <p className="text-foreground/70 max-w-lg mb-8">
+            Complete tarefas para ter chance de dropar materiais mágicos. Combine 3 materiais iguais para forjar um equipamento lendário! (Em breve)
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-3xl">
+            <div className="glass-panel p-6 bg-black/20 flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-slate-500/20 border border-slate-500/30 flex items-center justify-center mb-3 text-2xl">
+                ⚙️
+              </div>
+              <h4 className="font-bold text-slate-300">Fragmento de Ferro</h4>
+              <p className="text-sm font-bold text-primary mt-2">Você tem: {inventory.iron_fragment || 0}</p>
+            </div>
+            
+            <div className="glass-panel p-6 bg-black/20 flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-fuchsia-500/20 border border-fuchsia-500/30 flex items-center justify-center mb-3 text-2xl">
+                💎
+              </div>
+              <h4 className="font-bold text-fuchsia-300">Cristal Mágico</h4>
+              <p className="text-sm font-bold text-primary mt-2">Você tem: {inventory.magic_crystal || 0}</p>
+            </div>
+
+            <div className="glass-panel p-6 bg-black/20 flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-amber-700/20 border border-amber-700/30 flex items-center justify-center mb-3 text-2xl">
+                📜
+              </div>
+              <h4 className="font-bold text-amber-500">Pedaço de Couro</h4>
+              <p className="text-sm font-bold text-primary mt-2">Você tem: {inventory.leather_scrap || 0}</p>
+            </div>
+          </div>
         </div>
       )}
     </div>
