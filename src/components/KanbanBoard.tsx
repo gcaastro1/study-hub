@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import QuizModal from "./QuizModal";
 import TaskModal from "./TaskModal";
 import TaskCompletionModal from "./TaskCompletionModal";
+import LootChestModal from "./LootChestModal";
 
 type TaskStatus = "todo" | "in-progress" | "done";
 
@@ -20,9 +21,10 @@ interface Task {
 }
 
 export default function KanbanBoard() {
-  const { addXp, updateStats } = useGamification();
+  const { addXp, updateStats, dailyDungeonCleared, clearDungeon } = useGamification();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showLootChest, setShowLootChest] = useState(false);
   
   // Modals State
   const [isQuizOpen, setIsQuizOpen] = useState(false);
@@ -69,13 +71,13 @@ export default function KanbanBoard() {
   };
 
   const moveTask = (id: string, newStatus: TaskStatus) => {
-    const task = tasks.find((t) => t.id === id);
-    if (!task) return;
-
-    // Intercept to trigger Boss Battle when moving to "done"
-    if (task.status !== "done" && newStatus === "done") {
-      setPendingCompletionTask(task);
-      return; // Do not move yet!
+    // If moving to done, trigger Boss Battle Modal
+    if (newStatus === "done") {
+      const task = tasks.find(t => t.id === id);
+      if (task) {
+        setPendingCompletionTask(task);
+        return; // Don't move yet
+      }
     }
 
     // Normal move (todo <-> in-progress)
@@ -89,7 +91,7 @@ export default function KanbanBoard() {
     });
   };
 
-  const confirmTaskCompletion = () => {
+  const confirmTaskCompletion = async () => {
     if (!pendingCompletionTask) return;
     
     const task = pendingCompletionTask;
@@ -100,15 +102,25 @@ export default function KanbanBoard() {
     // Add Boss Battle bonus XP!
     xpReward += 100;
     
-    addXp(xpReward, task.subject || "Geral");
-    updateStats({ bossBattlesWon: 1 });
+    await addXp(xpReward, task.subject || "Geral");
+    await updateStats({ bossBattlesWon: 1 });
 
+    const today = new Date().toISOString().split("T")[0];
+    
     setTasks((prev) => {
       const taskIndex = prev.findIndex((t) => t.id === task.id);
       if (taskIndex === -1) return prev;
       
       const newTasks = [...prev];
       newTasks[taskIndex] = { ...task, status: "done" };
+      
+      // Check Dungeon Cleared logic: 3 tasks done
+      const doneTasksCount = newTasks.filter(t => t.status === "done").length;
+      if (doneTasksCount >= 3 && dailyDungeonCleared !== today) {
+        clearDungeon();
+        setShowLootChest(true);
+      }
+      
       return newTasks;
     });
 
@@ -287,6 +299,11 @@ export default function KanbanBoard() {
         onSuccess={confirmTaskCompletion}
         onFail={failTaskCompletion}
         taskData={pendingCompletionTask}
+      />
+
+      <LootChestModal
+        isOpen={showLootChest}
+        onClose={() => setShowLootChest(false)}
       />
     </>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useGamification } from "@/context/GamificationContext";
-import { Coins, Lock, Check, Zap, Shield, Sparkles } from "lucide-react";
+import { Coins, Lock, Check, Zap, Shield, Sparkles, Swords, Wand2, Shirt } from "lucide-react";
 import { useState } from "react";
 
 const THEMES = [
@@ -30,6 +30,45 @@ const POWER_UPS = [
   }
 ];
 
+export const EQUIPMENTS = [
+  {
+    id: "wood_sword",
+    name: "Espada de Madeira",
+    type: "weapon" as const,
+    description: "Uma espada básica de treino.",
+    cost: 50,
+    icon: Swords,
+    color: "text-amber-600 bg-amber-600/20"
+  },
+  {
+    id: "iron_helm",
+    name: "Elmo de Ferro",
+    type: "head" as const,
+    description: "Proteção básica para focar nos estudos.",
+    cost: 150,
+    icon: Shield,
+    color: "text-slate-400 bg-slate-400/20"
+  },
+  {
+    id: "magic_staff",
+    name: "Cajado Arcano",
+    type: "weapon" as const,
+    description: "Cajado de aprendizes de magia.",
+    cost: 200,
+    icon: Wand2,
+    color: "text-purple-400 bg-purple-400/20"
+  },
+  {
+    id: "leather_armor",
+    name: "Armadura de Couro",
+    type: "body" as const,
+    description: "Leve e resistente. Ideal para longas sessões de estudo.",
+    cost: 300,
+    icon: Shirt,
+    color: "text-orange-400 bg-orange-400/20"
+  }
+];
+
 export default function StorePage() {
   const { 
     coins, 
@@ -40,10 +79,12 @@ export default function StorePage() {
     inventory,
     activeBoosts,
     buyItem,
-    activateItem
+    activateItem,
+    equipment,
+    equipItem
   } = useGamification();
 
-  const [activeTab, setActiveTab] = useState<"themes" | "powerups">("themes");
+  const [activeTab, setActiveTab] = useState<"themes" | "powerups" | "equipments">("themes");
 
   const handleBuyTheme = async (themeId: string, cost: number) => {
     if (confirm(`Comprar este tema por ${cost} moedas?`)) {
@@ -109,6 +150,12 @@ export default function StorePage() {
           className={`pb-4 px-4 font-bold transition-colors ${activeTab === "powerups" ? "text-primary border-b-2 border-primary" : "text-foreground/50 hover:text-foreground"}`}
         >
           Power-ups (Inventário)
+        </button>
+        <button 
+          onClick={() => setActiveTab("equipments")}
+          className={`pb-4 px-4 font-bold transition-colors ${activeTab === "equipments" ? "text-primary border-b-2 border-primary" : "text-foreground/50 hover:text-foreground"}`}
+        >
+          Equipamentos
         </button>
       </div>
 
@@ -215,6 +262,54 @@ export default function StorePage() {
                     )}
                   </div>
                 </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {activeTab === "equipments" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {EQUIPMENTS.map((eq) => {
+            const hasItem = (inventory[eq.id] || 0) > 0;
+            const isEquipped = equipment[eq.type] === eq.id;
+
+            return (
+              <div key={eq.id} className="glass-panel p-6 flex flex-col items-center text-center transition-transform hover:-translate-y-1">
+                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-4 ${eq.color}`}>
+                  <eq.icon className="w-10 h-10" />
+                </div>
+                
+                <h3 className="text-lg font-bold mb-1">{eq.name}</h3>
+                <p className="text-foreground/60 text-xs mb-4 flex-1">{eq.description}</p>
+                
+                {!hasItem && (
+                  <div className="flex items-center gap-2 text-yellow-400 font-bold mb-4">
+                    <Coins className="w-4 h-4" /> {eq.cost}
+                  </div>
+                )}
+
+                {isEquipped ? (
+                  <div className="mt-auto w-full flex items-center justify-center gap-2 text-primary font-bold py-2 bg-primary/10 rounded-lg">
+                    <Check className="w-5 h-5" /> Equipado
+                  </div>
+                ) : hasItem ? (
+                  <button
+                    onClick={() => equipItem(eq.type, eq.id)}
+                    className="mt-auto px-6 py-2 bg-surface-border hover:bg-white/10 rounded-lg font-bold transition-colors w-full"
+                  >
+                    Equipar
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleBuyItem(eq.id, eq.cost)}
+                    disabled={coins < eq.cost}
+                    className="mt-auto px-6 py-2 bg-primary hover:bg-primary-hover disabled:bg-surface-border disabled:text-foreground/50 disabled:cursor-not-allowed text-white rounded-lg font-bold transition-colors w-full flex items-center justify-center gap-2"
+                  >
+                    {coins < eq.cost && <Lock className="w-4 h-4" />}
+                    Comprar
+                  </button>
+                )}
               </div>
             );
           })}
