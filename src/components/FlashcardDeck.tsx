@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import { useFlashcards, Flashcard } from "@/context/FlashcardContext";
-import { useGamification } from "@/context/GamificationContext";
+import { useAppDispatch } from "@/store";
+import { addXpThunk } from "@/store/thunks";
+import { useAuth } from "@/context/AuthContext";
 import { Layers, Brain, Check, X, RotateCcw, Frown, Meh, Smile, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function FlashcardDeck() {
+  const { user } = useAuth();
+  const dispatch = useAppDispatch();
   const { dueCards, reviewFlashcard, deleteFlashcard, isLoaded } = useFlashcards();
-  const { addXp } = useGamification();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
 
@@ -40,8 +43,8 @@ export default function FlashcardDeck() {
     // Quality: 0 (Errou feio), 3 (Acertou com dificuldade), 5 (Acertou fácil)
     await reviewFlashcard(currentCard.id, quality);
     
-    if (quality >= 3) {
-      addXp(20); // Small reward for reviewing
+    if (quality >= 3 && user) {
+      dispatch(addXpThunk({ uid: user.uid, amount: 20 }));
     }
     
     setShowAnswer(false);

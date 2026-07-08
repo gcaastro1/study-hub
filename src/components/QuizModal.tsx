@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useGamification } from "@/context/GamificationContext";
+import { useAppDispatch } from "@/store";
+import { addXpThunk } from "@/store/thunks";
+import { useAuth } from "@/context/AuthContext";
 import { useFlashcards } from "@/context/FlashcardContext";
 import { Brain, X, Loader2, Sparkles } from "lucide-react";
 
@@ -18,7 +20,8 @@ interface QuizModalProps {
 }
 
 export default function QuizModal({ topic, isOpen, onClose }: QuizModalProps) {
-  const { addXp } = useGamification();
+  const { user } = useAuth();
+  const dispatch = useAppDispatch();
   const { addFlashcard } = useFlashcards();
   const [loading, setLoading] = useState(false);
   const [quizData, setQuizData] = useState<QuizData | null>(null);
@@ -54,7 +57,9 @@ export default function QuizModal({ topic, isOpen, onClose }: QuizModalProps) {
     setSelectedOption(index);
     if (index === quizData?.correctAnswerIndex) {
       setResult("success");
-      addXp(200); // 200 XP for correct answer!
+      if (user) {
+        dispatch(addXpThunk({ uid: user.uid, amount: 200 })); // 200 XP for correct answer!
+      }
     } else {
       setResult("error");
     }

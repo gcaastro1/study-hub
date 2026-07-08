@@ -1,13 +1,13 @@
 "use client";
 
-import { useGamification } from "@/context/GamificationContext";
+import { useAppSelector } from "@/store";
 import { useAuth } from "@/context/AuthContext";
 import { Trophy, Flame, User, LogIn, LogOut, Maximize, Minimize } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
 export default function Header() {
-  const { xp, level, isLoaded } = useGamification();
+  const { xp, level, isLoaded } = useAppSelector(state => state.player);
   const { user, signInWithGoogle, logout } = useAuth();
   const [isFullscreen, setIsFullscreen] = useState(false);
   

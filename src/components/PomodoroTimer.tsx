@@ -1,12 +1,20 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useGamification } from "@/context/GamificationContext";
+import { useAppDispatch } from "@/store";
+import { addXpThunk, updateStatsThunk } from "@/store/thunks";
+import { useAuth } from "@/context/AuthContext";
+import { useAppSelector } from "@/store";
+import SpriteAnimator from "@/components/SpriteAnimator";
+import { PET_SPECIES, getActiveEvolution } from "@/lib/pets";
 import { Play, Pause, RotateCcw, Timer, Music, CloudRain, VolumeX } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function PomodoroTimer() {
-  const { addXp, updateStats } = useGamification();
+  const { user } = useAuth();
+  const dispatch = useAppDispatch();
+  const { level } = useAppSelector(state => state.player);
+  const { activePetId } = useAppSelector(state => state.inventory);
   
   const WORK_TIME = 25 * 60;
   const BREAK_TIME = 5 * 60;
@@ -43,11 +51,16 @@ export default function PomodoroTimer() {
       if (isRunning && timeLeft === 0) {
         setIsRunning(false);
         if (!isBreak) {
-          addXp(100);
-          updateStats({ 
-            pomodorosCompleted: 1,
-            totalStudyTime: WORK_TIME
-          });
+          if (user) {
+            dispatch(addXpThunk({ uid: user.uid, amount: 100, actionType: "POMODORO" }));
+            dispatch(updateStatsThunk({ 
+              uid: user.uid, 
+              updates: { 
+                pomodorosCompleted: 1,
+                totalStudyTime: WORK_TIME
+              } 
+            }));
+          }
           setIsBreak(true);
           setTimeLeft(BREAK_TIME);
         } else {
@@ -58,7 +71,7 @@ export default function PomodoroTimer() {
     }
     
     return () => clearInterval(interval);
-  }, [isRunning, timeLeft, isBreak, addXp, updateStats, soundscape]);
+  }, [isRunning, timeLeft, isBreak, dispatch, soundscape, user]);
 
   const toggleTimer = () => setIsRunning(!isRunning);
   
@@ -123,17 +136,20 @@ export default function PomodoroTimer() {
         {/* Mascot Area */}
         <div className="relative w-32 h-32 mb-4">
           <div className={`absolute inset-0 transition-opacity duration-1000 ${isRunning && !isBreak ? 'opacity-100' : 'opacity-0'} bg-primary/20 rounded-full blur-2xl`} />
-          <img 
-            src="/pet_transparent.png" 
-            alt="Mascote"
-            className={`w-full h-full object-contain mix-blend-multiply transition-all duration-1000 ${
+          <div className={`w-full h-full flex items-center justify-center transition-all duration-1000 ${
               isRunning && !isBreak 
-                ? 'animate-bounce' 
+                ? 'animate-bounce drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]' 
                 : isBreak 
                   ? 'grayscale opacity-70 animate-pulse'
                   : 'grayscale opacity-50'
-            }`}
-          />
+            }`}>
+            <SpriteAnimator 
+              src={`/mascots/sprites/${getActiveEvolution(activePetId || "gato_planta", Math.max(1, Math.floor(level / 2))).id}_idle.png`} 
+              className="w-24 h-24"
+              frameCount={4}
+              fps={6}
+            />
+          </div>
           {isBreak && (
             <div className="absolute -top-2 right-0 text-xl animate-bounce delay-150">💤</div>
           )}

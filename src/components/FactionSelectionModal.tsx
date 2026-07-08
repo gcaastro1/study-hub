@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { useGamification } from "@/context/GamificationContext";
+import { useAppSelector, useAppDispatch } from "@/store";
+import { selectFactionThunk } from "@/store/thunks";
+import { useAuth } from "@/context/AuthContext";
 import { FACTIONS, FactionId } from "@/lib/factions";
 import { Feather, Flame, Hexagon, Shield } from "lucide-react";
 
@@ -15,11 +17,19 @@ const getIcon = (iconName: string, className: string) => {
 };
 
 export default function FactionSelectionModal() {
-  const { rpgClass, faction, selectFaction, isLoaded } = useGamification();
+  const { user } = useAuth();
+  const dispatch = useAppDispatch();
+  const { rpgClass, faction, isLoaded } = useAppSelector(state => state.player);
   const [selected, setSelected] = useState<FactionId | null>(null);
 
   // Só mostra se já escolheu classe, mas ainda não tem facção
   if (!isLoaded || !rpgClass || faction) return null;
+
+  const handleSelectFaction = () => {
+    if (selected && user) {
+      dispatch(selectFactionThunk({ uid: user.uid, factionId: selected }));
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -56,7 +66,7 @@ export default function FactionSelectionModal() {
         </div>
 
         <button
-          onClick={() => selected && selectFaction(selected)}
+          onClick={handleSelectFaction}
           disabled={!selected}
           className="bg-primary text-white font-bold py-3 px-12 rounded-full hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100"
         >

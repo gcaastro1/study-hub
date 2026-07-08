@@ -1,10 +1,10 @@
 "use client";
 
-import { useGamification } from "@/context/GamificationContext";
+import { useAppSelector } from "@/store";
 import { Flame } from "lucide-react";
 
 export default function Heatmap() {
-  const { streakLogs, isLoaded } = useGamification();
+  const { streakLogs, isLoaded } = useAppSelector(state => state.player);
 
   if (!isLoaded) return null;
 

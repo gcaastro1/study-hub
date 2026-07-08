@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Store, BrainCircuit, BarChart2, Layers, Globe, Crown } from "lucide-react";
-import { useGamification } from "@/context/GamificationContext";
+import { useAppSelector } from "@/store";
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { equippedTheme } = useGamification();
+  const { equippedTheme } = useAppSelector(state => state.inventory);
 
   const NAV_ITEMS = [
     { name: "Painel", href: "/dashboard", icon: LayoutDashboard },

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
-import { GamificationProvider } from "@/context/GamificationContext";
+import StoreProvider from "@/store/StoreProvider";
+import GamificationLoader from "@/store/GamificationLoader";
 import { FlashcardProvider } from "@/context/FlashcardContext";
 
 const outfit = Outfit({
@@ -24,11 +25,12 @@ export default function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${outfit.variable} min-h-full flex flex-col md:flex-row antialiased`} suppressHydrationWarning>
         <AuthProvider>
-          <GamificationProvider>
+          <StoreProvider>
+            <GamificationLoader />
             <FlashcardProvider>
               {children}
             </FlashcardProvider>
-          </GamificationProvider>
+          </StoreProvider>
         </AuthProvider>
       </body>
     </html>

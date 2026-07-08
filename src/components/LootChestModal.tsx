@@ -2,15 +2,17 @@
 
 import React, { useEffect, useState } from "react";
 import { X, Gift } from "lucide-react";
-import { useGamification } from "@/context/GamificationContext";
-
+import { useAppDispatch } from "@/store";
+import { addXpThunk } from "@/store/thunks";
+import { useAuth } from "@/context/AuthContext";
 interface LootChestModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 export default function LootChestModal({ isOpen, onClose }: LootChestModalProps) {
-  const { addXp } = useGamification();
+  const { user } = useAuth();
+  const dispatch = useAppDispatch();
   const [opened, setOpened] = useState(false);
   const [reward, setReward] = useState<number | null>(null);
 
@@ -28,7 +30,9 @@ export default function LootChestModal({ isOpen, onClose }: LootChestModalProps)
     const xpReward = Math.floor(Math.random() * 300) + 200;
     setReward(xpReward);
     setOpened(true);
-    addXp(xpReward, "Geral", "dungeon_clear");
+    if (user) {
+      dispatch(addXpThunk({ uid: user.uid, amount: xpReward, subject: "Geral", actionType: "dungeon_clear" }));
+    }
   };
 
   return (

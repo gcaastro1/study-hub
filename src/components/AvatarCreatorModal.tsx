@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from "react";
 import Avatar, { genConfig } from "react-nice-avatar";
 import { X, Dices, Save, ShoppingCart, Lock } from "lucide-react";
-import { useGamification } from "@/context/GamificationContext";
+import { useAppSelector, useAppDispatch } from "@/store";
+import { updateAvatarConfigThunk, buyAvatarItemThunk } from "@/store/thunks";
+import { useAuth } from "@/context/AuthContext";
 import { AvatarConfig, DEFAULT_AVATAR } from "@/lib/avatar";
 
 interface AvatarCreatorModalProps {
@@ -47,7 +49,11 @@ const PREMIUM_ITEMS = {
 type PremiumCategory = keyof typeof PREMIUM_ITEMS;
 
 export default function AvatarCreatorModal({ isOpen, onClose }: AvatarCreatorModalProps) {
-  const { avatarConfig, updateAvatarConfig, coins, unlockedAvatarItems, buyAvatarItem } = useGamification();
+  const { user } = useAuth();
+  const dispatch = useAppDispatch();
+  const { avatarConfig, unlockedAvatarItems } = useAppSelector(state => state.inventory);
+  const { coins } = useAppSelector(state => state.player);
+
   const [config, setConfig] = useState<AvatarConfig>(DEFAULT_AVATAR);
   const [activeTab, setActiveTab] = useState<"features" | "colors" | "premium">("features");
 
@@ -73,7 +79,9 @@ export default function AvatarCreatorModal({ isOpen, onClose }: AvatarCreatorMod
   };
 
   const handleSave = async () => {
-    await updateAvatarConfig(config);
+    if (user) {
+      dispatch(updateAvatarConfigThunk({ uid: user.uid, config }));
+    }
     onClose();
   };
 
@@ -143,9 +151,11 @@ export default function AvatarCreatorModal({ isOpen, onClose }: AvatarCreatorMod
               <button
                 key={`buy-${item.id}`}
                 onClick={async () => {
-                  const success = await buyAvatarItem(item.id, item.cost);
-                  if (success) {
-                    setConfig({ ...config, [category]: item.id });
+                  if (user) {
+                    const result = await dispatch(buyAvatarItemThunk({ uid: user.uid, itemId: item.id, cost: item.cost })).unwrap();
+                    if (result) {
+                      setConfig({ ...config, [category]: item.id });
+                    }
                   }
                 }}
                 disabled={coins < item.cost}

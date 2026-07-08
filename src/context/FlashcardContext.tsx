@@ -2,7 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
-import { useGamification } from "./GamificationContext";
+import { useAppDispatch } from "@/store";
+import { addXpThunk } from "@/store/thunks";
 import { collection, doc, getDocs, setDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -30,7 +31,7 @@ const FlashcardContext = createContext<FlashcardState | undefined>(undefined);
 
 export const FlashcardProvider = ({ children }: { children: React.ReactNode }) => {
   const { user, loading: authLoading } = useAuth();
-  const { addXp } = useGamification();
+  const dispatch = useAppDispatch();
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -82,7 +83,7 @@ export const FlashcardProvider = ({ children }: { children: React.ReactNode }) =
       const cardRef = doc(db, "users", user.uid, "flashcards", newCard.id);
       await setDoc(cardRef, newCard);
       // Trigger badge check
-      addXp(0, undefined, "FLASHCARD_SAVED", { total: flashcards.length + 1 });
+      dispatch(addXpThunk({ uid: user.uid, amount: 0, actionType: "FLASHCARD_SAVED", actionPayload: { total: flashcards.length + 1 } }));
     } catch (error) {
       console.error("Erro ao adicionar flashcard:", error);
     }

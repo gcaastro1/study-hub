@@ -2,7 +2,9 @@
 
 import Header from "@/components/Header";
 import { useState } from "react";
-import { useGamification } from "@/context/GamificationContext";
+import { useAppDispatch } from "@/store";
+import { addXpThunk } from "@/store/thunks";
+import { useAuth } from "@/context/AuthContext";
 import { BrainCircuit, Loader2, Sparkles, Send } from "lucide-react";
 
 interface QuizData {
@@ -12,7 +14,8 @@ interface QuizData {
 }
 
 export default function QuizzesPage() {
-  const { addXp } = useGamification();
+  const { user } = useAuth();
+  const dispatch = useAppDispatch();
   const [topicInput, setTopicInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [quizData, setQuizData] = useState<QuizData | null>(null);
@@ -51,7 +54,9 @@ export default function QuizzesPage() {
     setSelectedOption(index);
     if (index === quizData?.correctAnswerIndex) {
       setResult("success");
-      addXp(200);
+      if (user) {
+        dispatch(addXpThunk({ uid: user.uid, amount: 200 }));
+      }
     } else {
       setResult("error");
     }

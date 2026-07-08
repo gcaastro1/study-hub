@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { useGamification } from "@/context/GamificationContext";
+import { useAppSelector, useAppDispatch } from "@/store";
+import { selectClass } from "@/store/slices/playerSlice";
+import { useAuth } from "@/context/AuthContext";
 import { RPG_CLASSES, RPGClassId } from "@/lib/rpgClasses";
 import { Swords, BookOpen, Dna, Shield, Sparkles } from "lucide-react";
 
@@ -16,10 +18,18 @@ const getIcon = (iconName: string) => {
 };
 
 export default function ClassSelectionModal() {
-  const { rpgClass, selectClass, isLoaded } = useGamification();
+  const { user } = useAuth();
+  const dispatch = useAppDispatch();
+  const { rpgClass, isLoaded } = useAppSelector(state => state.player);
   const [selected, setSelected] = useState<RPGClassId | null>(null);
 
   if (!isLoaded || rpgClass) return null;
+
+  const handleSelectClass = () => {
+    if (selected && user) {
+      dispatch(selectClass({ uid: user.uid, classId: selected }));
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -74,7 +84,7 @@ export default function ClassSelectionModal() {
         </div>
 
         <button
-          onClick={() => selected && selectClass(selected)}
+          onClick={handleSelectClass}
           disabled={!selected}
           className="bg-primary text-white font-bold py-3 px-12 rounded-full hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100"
         >

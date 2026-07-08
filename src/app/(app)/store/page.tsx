@@ -1,6 +1,8 @@
 "use client";
 
-import { useGamification } from "@/context/GamificationContext";
+import { useAppSelector, useAppDispatch } from "@/store";
+import { buyThemeThunk, equipThemeThunk, buyItemThunk, activateItemThunk, equipItemThunk } from "@/store/thunks";
+import { useAuth } from "@/context/AuthContext";
 import { Coins, Lock, Check, Zap, Shield, Sparkles, Swords, Wand2, Shirt, Flame } from "lucide-react";
 import { useState } from "react";
 
@@ -70,25 +72,16 @@ export const EQUIPMENTS = [
 ];
 
 export default function StorePage() {
-  const { 
-    coins, 
-    unlockedThemes, 
-    equippedTheme, 
-    buyTheme, 
-    equipTheme,
-    inventory,
-    activeBoosts,
-    buyItem,
-    activateItem,
-    equipment,
-    equipItem
-  } = useGamification();
+  const { user } = useAuth();
+  const dispatch = useAppDispatch();
+  const { coins, activeBoosts } = useAppSelector(state => state.player);
+  const { unlockedThemes, equippedTheme, inventory, equipment } = useAppSelector(state => state.inventory);
 
   const [activeTab, setActiveTab] = useState<"themes" | "powerups" | "equipments" | "forja">("themes");
 
   const handleBuyTheme = async (themeId: string, cost: number) => {
-    if (confirm(`Comprar este tema por ${cost} moedas?`)) {
-      const success = await buyTheme(themeId, cost);
+    if (confirm(`Comprar este tema por ${cost} moedas?`) && user) {
+      const success = await dispatch(buyThemeThunk({ uid: user.uid, themeId, cost })).unwrap();
       if (success) {
         alert("Tema comprado com sucesso!");
       } else {
@@ -98,8 +91,8 @@ export default function StorePage() {
   };
 
   const handleBuyItem = async (itemId: string, cost: number) => {
-    if (confirm(`Comprar este item por ${cost} moedas?`)) {
-      const success = await buyItem(itemId, cost);
+    if (confirm(`Comprar este item por ${cost} moedas?`) && user) {
+      const success = await dispatch(buyItemThunk({ uid: user.uid, itemId, cost })).unwrap();
       if (success) {
         alert("Item adicionado ao seu inventário!");
       } else {
@@ -109,13 +102,25 @@ export default function StorePage() {
   };
 
   const handleActivateItem = async (itemId: string) => {
-    if (confirm(`Deseja usar este item agora?`)) {
-      const success = await activateItem(itemId, 24); // Todos duram 24h por enquanto
+    if (confirm(`Deseja usar este item agora?`) && user) {
+      const success = await dispatch(activateItemThunk({ uid: user.uid, itemId, durationHours: 24 })).unwrap();
       if (success) {
         alert("Poder ativado!");
       } else {
         alert("Erro ao ativar.");
       }
+    }
+  };
+
+  const handleEquipTheme = (themeId: string) => {
+    if (user) {
+      dispatch(equipThemeThunk({ uid: user.uid, themeId }));
+    }
+  };
+
+  const handleEquipItem = (type: 'head'|'body'|'weapon', itemId: string) => {
+    if (user) {
+      dispatch(equipItemThunk({ uid: user.uid, slot: type, itemId }));
     }
   };
 
@@ -192,7 +197,7 @@ export default function StorePage() {
                   </div>
                 ) : isUnlocked ? (
                   <button
-                    onClick={() => equipTheme(theme.id)}
+                    onClick={() => handleEquipTheme(theme.id)}
                     className="mt-auto px-6 py-2 bg-surface-border hover:bg-white/10 rounded-lg font-bold transition-colors w-full"
                   >
                     Equipar
@@ -301,7 +306,7 @@ export default function StorePage() {
                   </div>
                 ) : hasItem ? (
                   <button
-                    onClick={() => equipItem(eq.type, eq.id)}
+                    onClick={() => handleEquipItem(eq.type, eq.id)}
                     className="mt-auto px-6 py-2 bg-surface-border hover:bg-white/10 rounded-lg font-bold transition-colors w-full"
                   >
                     Equipar

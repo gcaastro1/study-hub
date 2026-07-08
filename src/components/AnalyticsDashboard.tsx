@@ -1,6 +1,7 @@
 "use client";
 
-import { useGamification } from "@/context/GamificationContext";
+import { useAppSelector, useAppDispatch } from "@/store";
+import { equipTitleThunk } from "@/store/thunks";
 import { BrainCircuit, Clock, Timer, Trophy, Swords, Shield, Shirt } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
 import { RPG_CLASSES, RPGClassId } from "@/lib/rpgClasses";
@@ -9,10 +10,20 @@ import { TITLES } from "@/lib/titles";
 import Avatar from "react-nice-avatar";
 import AvatarCreatorModal from "./AvatarCreatorModal";
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function AnalyticsDashboard() {
-  const { stats, isLoaded, unlockedBadges, attributes, rpgClass, equipment, activeTitle, unlockedTitles, equipTitle, avatarConfig } = useGamification();
+  const { user } = useAuth();
+  const dispatch = useAppDispatch();
+  const playerState = useAppSelector(state => state.player);
+  const inventoryState = useAppSelector(state => state.inventory);
+  
+  const { stats, attributes, rpgClass, activeTitle, unlockedTitles, isLoaded: playerLoaded } = playerState;
+  const { unlockedBadges, equipment, avatarConfig, isLoaded: inventoryLoaded } = inventoryState;
+
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+
+  const isLoaded = playerLoaded && inventoryLoaded;
 
   if (!isLoaded) {
     return (
@@ -40,6 +51,12 @@ export default function AnalyticsDashboard() {
   })).sort((a, b) => b.value - a.value);
 
   const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+
+  const handleEquipTitle = (titleId: string | null) => {
+    if (user) {
+      dispatch(equipTitleThunk({ uid: user.uid, titleId }));
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -186,7 +203,7 @@ export default function AnalyticsDashboard() {
                 <select 
                   className="bg-black/20 border border-white/10 rounded-lg p-2 text-sm text-primary font-bold focus:outline-none"
                   value={activeTitle || ""}
-                  onChange={(e) => equipTitle(e.target.value || null)}
+                  onChange={(e) => handleEquipTitle(e.target.value || null)}
                 >
                   <option value="">Sem Título</option>
                   {unlockedTitles.map(tId => {
