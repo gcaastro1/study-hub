@@ -7,14 +7,16 @@ import { useAuth } from "@/context/AuthContext";
 import { useAppSelector } from "@/store";
 import SpriteAnimator from "@/components/SpriteAnimator";
 import { PET_SPECIES, getActiveEvolution } from "@/lib/pets";
-import { Play, Pause, RotateCcw, Timer, Music, CloudRain, VolumeX } from "lucide-react";
+import { Play, Pause, RotateCcw, RefreshCw, Timer, Music, CloudRain, VolumeX } from "lucide-react";
 import { motion } from "framer-motion";
+import { useI18n } from "@/context/I18nContext";
 
 export default function PomodoroTimer() {
   const { user } = useAuth();
   const dispatch = useAppDispatch();
   const { level } = useAppSelector(state => state.player);
   const { activePetId } = useAppSelector(state => state.inventory);
+  const { t } = useI18n();
   
   const WORK_TIME = 25 * 60;
   const BREAK_TIME = 5 * 60;
@@ -119,63 +121,65 @@ export default function PomodoroTimer() {
           </div>
         </div>
 
-        <div className="relative group">
-          <div className={`absolute -inset-8 bg-gradient-to-r ${isBreak ? 'from-blue-500/10 to-transparent' : 'from-primary/10 to-transparent'} blur-2xl opacity-50`}></div>
-          <motion.div 
-            className={`text-8xl md:text-9xl font-technical tracking-tighter tabular-nums leading-none ${isBreak ? 'text-blue-400' : 'text-primary'}`}
-            animate={{ 
-              textShadow: isRunning ? `0 0 20px ${isBreak ? 'rgba(96,165,250,0.5)' : 'rgba(239,68,68,0.5)'}` : '0 0 0px rgba(0,0,0,0)'
-            }}
-          >
-            {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
-          </motion.div>
-          <div className="absolute -top-4 -left-8 w-4 h-4 border-t-2 border-l-2 border-surface-border"></div>
-          <div className="absolute -bottom-4 -right-8 w-4 h-4 border-b-2 border-r-2 border-surface-border"></div>
-        </div>
+        <div className="flex-1 flex flex-col items-center justify-center w-full gap-8">
+          <div className="relative group">
+            <div className={`absolute -inset-8 bg-gradient-to-r ${isBreak ? 'from-blue-500/10 to-transparent' : 'from-primary/10 to-transparent'} blur-2xl opacity-50`}></div>
+            <motion.div 
+              className={`text-7xl md:text-8xl font-technical tracking-tighter tabular-nums leading-none ${isBreak ? 'text-blue-400' : 'text-primary'}`}
+              animate={{ 
+                textShadow: isRunning ? `0 0 20px ${isBreak ? 'rgba(96,165,250,0.5)' : 'rgba(239,68,68,0.5)'}` : '0 0 0px rgba(0,0,0,0)'
+              }}
+            >
+              {formatTime(timeLeft)}
+            </motion.div>
+            <div className="absolute -top-4 -left-8 w-4 h-4 border-t-2 border-l-2 border-surface-border"></div>
+            <div className="absolute -bottom-4 -right-8 w-4 h-4 border-b-2 border-r-2 border-surface-border"></div>
+          </div>
 
-        <div className="relative w-full max-w-[200px] aspect-square mt-4">
-            <div className={`absolute inset-0 rounded-full border border-dashed ${isRunning ? 'border-primary animate-[spin_10s_linear_infinite]' : 'border-surface-border'}`}></div>
-            <div className="absolute inset-4 rounded-full border border-surface-border/50"></div>
-            
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-full h-[1px] bg-surface-border/30"></div>
-              <div className="h-full w-[1px] bg-surface-border/30 absolute"></div>
-            </div>
-
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className={`transition-all duration-500 ${
-                  isRunning && !isBreak 
-                    ? 'scale-125 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]' 
-                    : 'grayscale opacity-50'
-              }`}>
-              <SpriteAnimator 
-                src={`/mascots/sprites/${getActiveEvolution(inventoryPetId || activePetId || "gato_planta", Math.max(1, Math.floor((level || 1) / 2))).id}_${isRunning && !isBreak ? 'attack' : 'idle'}.png`} 
-                className="w-32 h-32"
-                frameCount={4}
-                fps={isRunning && !isBreak ? 12 : 6}
-              />
+          <div className="relative w-full max-w-[180px] aspect-square mt-2">
+              <div className={`absolute inset-0 rounded-full border border-dashed ${isRunning ? 'border-primary animate-[spin_10s_linear_infinite]' : 'border-surface-border'}`}></div>
+              <div className="absolute inset-4 rounded-full border border-surface-border/50"></div>
+              
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-full h-[1px] bg-surface-border/30"></div>
+                <div className="h-full w-[1px] bg-surface-border/30 absolute"></div>
               </div>
-            </div>
-        </div>
 
-        <div className="flex gap-4 mt-4 w-full max-w-xs">
-          <button
-            onClick={toggleTimer}
-            className={`flex-1 py-3 text-xs font-technical font-bold tracking-widest transition-colors ${
-              isRunning
-                ? "bg-transparent border-2 border-red-500/50 text-red-500 hover:bg-red-500/10"
-                : "bg-primary text-white hover:bg-primary/90 border-2 border-primary"
-            }`}
-          >
-            {isRunning ? t("timer.abort") : t("timer.execute")}
-          </button>
-          
-          <button
-            onClick={resetTimerState}
-            className="w-16 flex items-center justify-center border-2 border-surface-border text-foreground/50 hover:text-foreground hover:border-foreground/30 transition-colors"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className={`transition-all duration-500 ${
+                    isRunning && !isBreak 
+                      ? 'scale-125 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]' 
+                      : 'grayscale opacity-50'
+                }`}>
+                <SpriteAnimator 
+                  src={`/mascots/sprites/${getActiveEvolution(activePetId || "gato_planta", Math.max(1, Math.floor((level || 1) / 2))).id}_${isRunning && !isBreak ? 'attack' : 'idle'}.png`} 
+                  className="w-24 h-24"
+                  frameCount={4}
+                  fps={isRunning && !isBreak ? 12 : 6}
+                />
+                </div>
+              </div>
+          </div>
+
+          <div className="flex gap-4 mt-2 w-full max-w-xs">
+            <button
+              onClick={toggleTimer}
+              className={`flex-1 py-3 text-xs font-technical font-bold tracking-widest transition-colors ${
+                isRunning
+                  ? "bg-transparent border-2 border-red-500/50 text-red-500 hover:bg-red-500/10"
+                  : "bg-primary text-white hover:bg-primary/90 border-2 border-primary"
+              }`}
+            >
+              {isRunning ? t("timer.abort") : t("timer.execute")}
+            </button>
+            
+            <button
+              onClick={resetTimer}
+              className="w-16 flex items-center justify-center border-2 border-surface-border text-foreground/50 hover:text-foreground hover:border-foreground/30 transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
       </div>
