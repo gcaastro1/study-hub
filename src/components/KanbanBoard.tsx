@@ -128,48 +128,33 @@ export default function KanbanBoard() {
 
   return (
     <>
-      <div className="glass-panel p-6 h-full flex flex-col">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            Meu Plano de Estudos
-          </h2>
-          
-          <button 
-            onClick={() => setIsTaskModalOpen(true)}
-            className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg shadow-primary/20"
-          >
-            <Plus className="w-5 h-5" /> Nova Tarefa
-          </button>
-        </div>
-
+      <div className="flex-1 flex flex-col h-full bg-background relative overflow-hidden font-sans">
         <DragDropContext onDragEnd={onDragEnd}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 min-h-[400px]">
-            {columns.map((col) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 flex-1 h-full border border-surface-border">
+            {columns.map((col, i) => (
               <Droppable key={col.id} droppableId={col.id}>
                 {(provided, snapshot) => (
                   <div 
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`rounded-xl p-4 flex flex-col gap-3 border transition-colors ${
-                      snapshot.isDraggingOver ? "border-primary/50" : "border-surface-border/50"
-                    } ${col.color}`}
+                    className={`flex flex-col bg-surface/30 transition-colors ${
+                      snapshot.isDraggingOver ? "bg-surface" : ""
+                    } ${i !== 0 ? "border-l border-surface-border" : ""}`}
                   >
-                    <h3 className="font-semibold text-foreground/80 mb-2 flex justify-between">
-                      {col.title}
-                      <span className="text-xs bg-black/30 px-2 py-1 rounded-full">
-                        {tasks.filter((t) => t.status === col.id).length}
-                      </span>
-                    </h3>
+                    <div className="bg-surface border-b border-surface-border p-2">
+                      <h3 className="font-technical text-[10px] text-foreground/50 tracking-widest flex justify-between">
+                        [{col.title.toUpperCase()}]
+                        <span className="text-primary font-bold">
+                          {tasks.filter((t) => t.status === col.id).length.toString().padStart(2, '0')}
+                        </span>
+                      </h3>
+                    </div>
                     
-                    <div className="flex-1 flex flex-col gap-3">
+                    <div className="flex-1 flex flex-col p-2 gap-2 overflow-y-auto min-h-[300px]">
                       <AnimatePresence>
                         {tasks
                           .filter((t) => t.status === col.id)
                           .map((task, index) => {
-                            let difficultyColor = "bg-blue-500/20 text-blue-400";
-                            if (task.difficulty === "Fácil") difficultyColor = "bg-emerald-500/20 text-emerald-400";
-                            if (task.difficulty === "Difícil") difficultyColor = "bg-red-500/20 text-red-400";
-
                             return (
                               <Draggable key={task.id} draggableId={task.id} index={index}>
                                 {(provided, snapshot) => (
@@ -180,65 +165,39 @@ export default function KanbanBoard() {
                                       ...provided.draggableProps.style,
                                       opacity: snapshot.isDragging ? 0.9 : 1
                                     }}
-                                    className={`bg-surface/80 backdrop-blur-md p-4 rounded-lg border shadow-md flex items-start gap-3 group transition-all ${
-                                      snapshot.isDragging ? "border-primary scale-[1.02] z-50" : "border-white/5 hover:border-primary/50"
+                                    className={`bg-background border flex flex-col group transition-all relative ${
+                                      snapshot.isDragging ? "border-primary shadow-[0_0_15px_rgba(168,26,36,0.2)] z-50" : "border-surface-border hover:border-foreground/30"
                                     }`}
                                   >
-                                    <div {...provided.dragHandleProps} className="mt-1 cursor-grab active:cursor-grabbing">
-                                      <GripVertical className="w-5 h-5 text-foreground/30 flex-shrink-0 hover:text-primary transition-colors" />
+                                    <div className="flex border-b border-surface-border/50 bg-surface/50 p-1.5 items-center gap-2">
+                                       <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing text-foreground/20 hover:text-primary">
+                                         <GripVertical className="w-3 h-3" />
+                                       </div>
+                                       <span className="text-[9px] font-technical text-foreground/40 tracking-widest flex-1">
+                                         {task.subject ? `${task.subject.toUpperCase()} // ` : ""}
+                                         {task.difficulty ? `DIFF: ${task.difficulty.toUpperCase()}` : ""}
+                                       </span>
+                                       
+                                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                         {task.status !== "done" && (
+                                            <>
+                                              <button onClick={() => openQuiz(task.subject || task.title)} className="text-[9px] font-technical text-purple-400 hover:bg-purple-400/20 px-1 border border-transparent hover:border-purple-400/50">QUIZ</button>
+                                              <button onClick={() => moveToDone(task.id)} className="text-[9px] font-technical text-emerald-400 hover:bg-emerald-400/20 px-1 border border-transparent hover:border-emerald-400/50">OK</button>
+                                            </>
+                                         )}
+                                         <button onClick={() => deleteTask(task.id)} className="text-[9px] font-technical text-red-500 hover:bg-red-500/20 px-1 border border-transparent hover:border-red-500/50">DEL</button>
+                                       </div>
                                     </div>
                                     
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex flex-wrap gap-2 mb-2">
-                                        {task.subject && (
-                                          <span className="text-xs px-2 py-1 bg-surface-border rounded-md flex items-center gap-1 text-foreground/80">
-                                            <Tag className="w-3 h-3" /> {task.subject}
-                                          </span>
-                                        )}
-                                        {task.difficulty && (
-                                          <span className={`text-xs px-2 py-1 rounded-md font-medium ${difficultyColor}`}>
-                                            {task.difficulty}
-                                          </span>
-                                        )}
-                                      </div>
-                                      
-                                      <p className={`font-medium ${task.status === "done" ? "line-through text-foreground/50" : ""}`}>
+                                    <div className={`p-2 py-3 ${task.status === "done" ? "opacity-30" : ""}`}>
+                                      <p className="font-bold text-xs uppercase tracking-wide text-foreground">
                                         {task.title}
                                       </p>
-                                      
                                       {task.description && (
-                                        <p className={`text-sm mt-2 flex items-start gap-1 ${task.status === "done" ? "text-foreground/40" : "text-foreground/70"}`}>
-                                          <AlignLeft className="w-4 h-4 mt-0.5 flex-shrink-0 opacity-50" />
-                                          <span className="line-clamp-2">{task.description}</span>
+                                        <p className="text-[10px] mt-1 text-foreground/50 font-mono line-clamp-2">
+                                          &gt; {task.description}
                                         </p>
                                       )}
-                                    </div>
-                                    
-                                    <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                      {task.status !== "done" && (
-                                        <>
-                                          <button 
-                                            onClick={() => openQuiz(task.subject || task.title)}
-                                            className="p-1.5 text-purple-400 hover:bg-purple-400/20 rounded transition-colors"
-                                            title="Gerar Quiz IA"
-                                          >
-                                            <Brain className="w-4 h-4" />
-                                          </button>
-                                          <button 
-                                            onClick={() => moveToDone(task.id)}
-                                            className="p-1.5 text-emerald-400 hover:bg-emerald-400/20 rounded transition-colors"
-                                            title="Concluir"
-                                          >
-                                            <CheckCircle2 className="w-4 h-4" />
-                                          </button>
-                                        </>
-                                      )}
-                                      <button 
-                                        onClick={() => deleteTask(task.id)}
-                                        className="p-1.5 text-red-400 hover:bg-red-400/20 rounded transition-colors"
-                                      >
-                                        <Trash2 className="w-4 h-4" />
-                                      </button>
                                     </div>
                                   </div>
                                 )}
@@ -248,10 +207,14 @@ export default function KanbanBoard() {
                       </AnimatePresence>
                       {provided.placeholder}
                       
-                      {tasks.filter((t) => t.status === col.id).length === 0 && !snapshot.isDraggingOver && (
-                        <div className="border-2 border-dashed border-white/10 rounded-lg flex-1 min-h-[100px] flex items-center justify-center text-sm text-foreground/30 mt-2">
-                          Arraste para cá
-                        </div>
+                      {/* Fixed "Add Mission" button at the bottom of ToDo */}
+                      {col.id === "todo" && (
+                         <button 
+                           onClick={() => setIsTaskModalOpen(true)}
+                           className="mt-auto border border-dashed border-surface-border text-foreground/40 hover:text-primary hover:border-primary p-2 text-[10px] font-technical tracking-widest flex justify-center items-center gap-2 transition-colors"
+                         >
+                           <Plus className="w-3 h-3" /> ADD DIRECTIVE
+                         </button>
                       )}
                     </div>
                   </div>

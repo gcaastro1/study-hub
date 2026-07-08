@@ -34,24 +34,25 @@ export default function Heatmap() {
   }
 
   return (
-    <div className="glass-panel p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="font-bold flex items-center gap-2">
-          <Flame className="w-5 h-5 text-orange-500" />
-          Frequência (Últimos 30 dias)
+    <div className="flex flex-col gap-2">
+      <div className="flex justify-between items-center mb-1">
+        <h3 className="text-[10px] font-technical tracking-widest text-foreground/50">
+          [ SYNCHRONIZATION HISTORY ]
         </h3>
-        <span className="text-sm font-medium bg-surface px-3 py-1 rounded-full text-orange-400">
-          {currentStreak} {currentStreak === 1 ? 'dia' : 'dias'} seguidos
+        <span className="text-[10px] font-mono text-primary border border-primary/30 px-1">
+          STREAK: {currentStreak.toString().padStart(2, '0')}
         </span>
       </div>
 
-      <div className="flex gap-1 flex-wrap">
+      <div className="grid grid-cols-10 gap-1">
         {days.map((day, idx) => (
           <div
             key={day.date}
             title={day.date}
-            className={`w-4 h-4 md:w-5 md:h-5 rounded-sm transition-colors ${
-              day.active ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-white/5"
+            className={`w-full aspect-square border ${
+              day.active 
+                ? "bg-primary/80 border-primary shadow-[0_0_5px_rgba(217,119,6,0.3)]" 
+                : "bg-surface border-surface-border/50"
             }`}
           />
         ))}

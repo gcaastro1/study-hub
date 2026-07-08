@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { initializeFirestore, persistentLocalCache } from "firebase/firestore";
+import { getFirestore, initializeFirestore, persistentLocalCache } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -14,15 +14,20 @@ const firebaseConfig = {
 // Initialize Firebase only once
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
-let db;
+let db: ReturnType<typeof getFirestore>;
+
 if (typeof window !== "undefined") {
-  // Client-side: Initialize with persistent cache
-  db = initializeFirestore(app, {
-    localCache: persistentLocalCache()
-  });
+  // Client-side: Initialize with persistent cache safely
+  try {
+    db = initializeFirestore(app, {
+      localCache: persistentLocalCache()
+    });
+  } catch (error) {
+    // If it was already initialized (e.g., during Fast Refresh), just get it
+    db = getFirestore(app);
+  }
 } else {
-  // Server-side: Standard initialization (persistence not supported on Node.js)
-  const { getFirestore } = require("firebase/firestore");
+  // Server-side: Standard initialization
   db = getFirestore(app);
 }
 
