@@ -1,0 +1,68 @@
+{
+  "hud": {
+    "dashboard": "[ DASHBOARD ]",
+    "inventory": "[ INVENTORY ]",
+    "sanctuary": "[ SANCTUARY ]",
+    "pilot": "PILOT",
+    "level": "LEVEL",
+    "funds": "FUNDS",
+    "streak": "STREAK",
+    "days": "DAYS",
+    "deploymentInfo": "DEPLOYMENT INFO"
+  },
+  "dashboard": {
+    "missionLog": "MISSION LOG",
+    "pastAssignments": "PAST ASSIGNMENTS",
+    "reserves": "RESERVES & RESOURCES",
+    "stamina": "[STAMINA]",
+    "optimal": "OPTIMAL",
+    "focusIndex": "[FOCUS INDEX]",
+    "synchronization": "[SYNCHRONIZATION]",
+    "active": "ACTIVE",
+    "eventsLog": "EVENTS LOG // CURRENT",
+    "pilotRoster": "PILOT ROSTER // CONTRACTS"
+  },
+  "kanban": {
+    "todo": "TO DO",
+    "inProgress": "IN PROGRESS",
+    "done": "COMPLETED",
+    "diff": "DIFF:",
+    "quiz": "QUIZ",
+    "ok": "OK",
+    "del": "DEL",
+    "addDirective": "ADD DIRECTIVE"
+  },
+  "timer": {
+    "module": "MODULE",
+    "coolingPhase": "[ COOLING PHASE ]",
+    "syncPhase": "[ SYNCHRONIZATION ]",
+    "mute": "MUTE",
+    "noise": "NOISE",
+    "bgm": "BGM",
+    "abort": "[ ABORT ]",
+    "execute": "[ EXECUTE ]",
+    "reset": "[ RESET ]",
+    "msgActive": ">> NEURAL LINK ACTIVE // TRAINING PROTOCOL ENGAGED",
+    "msgCooling": ">> SYSTEM COOLING // AWAITING REBOOT",
+    "msgStandby": ">> SYSTEM STANDBY // READY FOR EXECUTION"
+  },
+  "heatmap": {
+    "history": "[ SYNCHRONIZATION HISTORY ]",
+    "streak": "STREAK"
+  },
+  "inventory": {
+    "title": "ARSENAL & RESOURCES // INVENTORY",
+    "badges": "BADGES AND DECORATIONS",
+    "consumables": "CONSUMABLES",
+    "pets": "ACQUIRED PETS",
+    "noBadges": "No badges unlocked yet.",
+    "noItems": "No items available.",
+    "noPets": "No pets available."
+  },
+  "settings": {
+    "title": "[ SYSTEM CONFIGURATION ]",
+    "language": "SYSTEM LANGUAGE",
+    "logout": "[ DISCONNECT SYSTEM ]",
+    "close": "[ CLOSE ]"
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "hud": {
+    "dashboard": "[ DASHBOARD ]",
+    "inventory": "[ INVENTÁRIO ]",
+    "sanctuary": "[ SANTUÁRIO ]",
+    "pilot": "PILOTO",
+    "level": "NÍVEL",
+    "funds": "FUNDO",
+    "streak": "SÉRIE",
+    "days": "DIAS",
+    "deploymentInfo": "INFO DE DESDOBRAMENTO"
+  },
+  "dashboard": {
+    "missionLog": "DIÁRIO DE MISSÃO",
+    "pastAssignments": "TAREFAS PASSADAS",
+    "reserves": "RESERVAS E RECURSOS",
+    "stamina": "[ENERGIA]",
+    "optimal": "OTIMIZADA",
+    "focusIndex": "[ÍNDICE DE FOCO]",
+    "synchronization": "[SINCRONIZAÇÃO]",
+    "active": "ATIVA",
+    "eventsLog": "REGISTRO DE EVENTOS // ATUAL",
+    "pilotRoster": "ROSTER DE PILOTOS // CONTRATOS"
+  },
+  "kanban": {
+    "todo": "A FAZER",
+    "inProgress": "EM ANDAMENTO",
+    "done": "CONCLUÍDO",
+    "diff": "DIF:",
+    "quiz": "QUIZ",
+    "ok": "OK",
+    "del": "DEL",
+    "addDirective": "ADICIONAR DIRETRIZ"
+  },
+  "timer": {
+    "module": "MÓDULO",
+    "coolingPhase": "[ FASE DE RESFRIAMENTO ]",
+    "syncPhase": "[ SINCRONIZAÇÃO ]",
+    "mute": "MUDO",
+    "noise": "RUÍDO",
+    "bgm": "BGM",
+    "abort": "[ ABORTAR ]",
+    "execute": "[ EXECUTAR ]",
+    "reset": "[ RESETAR ]",
+    "msgActive": ">> LINK NEURAL ATIVO // PROTOCOLO DE TREINO ENGAJADO",
+    "msgCooling": ">> RESFRIAMENTO DE SISTEMA // AGUARDANDO REBOOT",
+    "msgStandby": ">> SISTEMA EM ESPERA // PRONTO PARA EXECUÇÃO"
+  },
+  "heatmap": {
+    "history": "[ HISTÓRICO DE SINCRONIZAÇÃO ]",
+    "streak": "SÉRIE"
+  },
+  "inventory": {
+    "title": "ARSENAL & RECURSOS // INVENTÁRIO",
+    "badges": "EMBLEMAS E CONDECORAÇÕES",
+    "consumables": "CONSUMÍVEIS",
+    "pets": "MASCOTES ADQUIRIDOS",
+    "noBadges": "Nenhum emblema desbloqueado.",
+    "noItems": "Nenhum item disponível.",
+    "noPets": "Nenhum mascote disponível."
+  },
+  "settings": {
+    "title": "[ CONFIGURAÇÕES DE SISTEMA ]",
+    "language": "IDIOMA DO SISTEMA",
+    "logout": "[ DESCONECTAR SISTEMA ]",
+    "close": "[ FECHAR ]"
+  }
+}

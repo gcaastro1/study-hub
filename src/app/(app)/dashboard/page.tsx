@@ -3,78 +3,87 @@
 import PomodoroTimer from "@/components/PomodoroTimer";
 import KanbanBoard from "@/components/KanbanBoard";
 import Heatmap from "@/components/Heatmap";
+import { useI18n } from "@/context/I18nContext";
 
-export default function Home() {
+export default function Dashboard() {
+  const { t } = useI18n();
+  
   return (
     <div className="flex flex-col gap-6 h-full font-sans">
-      
       {/* Dense 3-Column Tactical Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 h-full">
         
-        {/* Left Column: MISSION LOG (Heatmap & Stats) */}
-        <div className="xl:col-span-3 flex flex-col gap-6">
-          <div className="bg-primary text-white p-2 px-4 chamfered-box">
-            <h2 className="text-sm font-technical font-bold flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-              MISSION LOG
-            </h2>
-          </div>
-          
-          <div className="glass-panel p-4 flex-1">
-            <h3 className="text-[10px] font-technical text-primary mb-4 border-b border-surface-border pb-2">PAST ASSIGNMENTS</h3>
-            <div className="scale-90 origin-top-left w-[110%]">
-              <Heatmap />
+        {/* LEFT COLUMN: Mission Log & Stats (Heatmap) */}
+        <div className="xl:col-span-3 flex flex-col gap-6 h-full">
+          {/* Mission Log Box */}
+          <div className="bg-surface/30 border border-surface-border flex flex-col h-full chamfered-box relative">
+            <div className="bg-surface border-b border-surface-border p-2 flex justify-between items-center">
+              <span className="text-[10px] font-technical tracking-widest text-foreground/50">[{t("dashboard.missionLog")}]</span>
+              <div className="flex gap-1">
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-surface-border rounded-full"></div>
+              </div>
             </div>
             
-            {/* Fake stats for aesthetic */}
-            <div className="mt-8 space-y-2 border-t border-surface-border pt-4">
-              <h3 className="text-[10px] font-technical text-primary mb-2">RESERVES & RESOURCES</h3>
-              <div className="flex justify-between text-xs border-b border-surface-border/50 pb-1">
-                <span className="text-foreground/50">[STAMINA]</span>
-                <span className="font-mono">OPTIMAL</span>
+            <div className="flex-1 p-4 overflow-y-auto">
+              <Heatmap />
+              
+              <div className="mt-6 pt-4 border-t border-surface-border/50">
+                <h3 className="text-[10px] font-technical tracking-widest text-foreground/40 mb-3">[{t("dashboard.pastAssignments")}]</h3>
+                {/* Fake logs for aesthetics */}
+                <div className="font-mono text-[9px] text-foreground/30 flex flex-col gap-1">
+                  <p>&gt; ASSIGNMENT_01: CLEARED</p>
+                  <p>&gt; ASSIGNMENT_02: CLEARED</p>
+                  <p className="text-primary/50">&gt; ASSIGNMENT_03: ABORTED</p>
+                  <p>&gt; SYNC_RATE: OPTIMAL</p>
+                </div>
               </div>
-              <div className="flex justify-between text-xs border-b border-surface-border/50 pb-1">
-                <span className="text-foreground/50">[FOCUS INDEX]</span>
-                <span className="font-mono text-emerald-500">98.4%</span>
+            </div>
+            
+            <div className="bg-surface/50 border-t border-surface-border p-2">
+              <div className="flex justify-between items-center font-technical text-[9px] text-foreground/50">
+                <span>{t("dashboard.stamina")}</span>
+                <span className="text-primary">{t("dashboard.optimal")}</span>
               </div>
-              <div className="flex justify-between text-xs border-b border-surface-border/50 pb-1">
-                <span className="text-foreground/50">[SYNCHRONIZATION]</span>
-                <span className="font-mono text-primary">ACTIVE</span>
+              <div className="flex justify-between items-center font-technical text-[9px] text-foreground/50 mt-1">
+                <span>{t("dashboard.focusIndex")}</span>
+                <span className="text-emerald-500">98.4%</span>
               </div>
             </div>
           </div>
         </div>
-        
-        {/* Center Column: EVENTS LOG (Timer & Pet) */}
-        <div className="xl:col-span-4 flex flex-col gap-6">
-          <div className="bg-primary text-white p-2 px-4 chamfered-box">
-            <h2 className="text-sm font-technical font-bold flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-              EVENTS LOG // CURRENT
-            </h2>
-          </div>
-          
-          <div className="flex-1 w-full flex flex-col">
-            <PomodoroTimer />
-          </div>
-        </div>
-        
-        {/* Right Column: PILOT ROSTER (Kanban Board) */}
-        <div className="xl:col-span-5 flex flex-col gap-6 h-full min-h-[600px]">
-          <div className="bg-primary text-white p-2 px-4 chamfered-box flex justify-between items-center">
-            <h2 className="text-sm font-technical font-bold flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-              PILOT ROSTER // CONTRACTS
-            </h2>
-          </div>
-          
-          <div className="flex-1 h-full relative">
-            <KanbanBoard />
+
+        {/* CENTER COLUMN: Containment Chamber (Timer) */}
+        <div className="xl:col-span-4 flex flex-col h-full">
+          <div className="bg-surface border border-surface-border flex-1 relative flex flex-col">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+            
+            <div className="p-2 border-b border-surface-border flex justify-between items-center bg-background/50">
+               <span className="text-[10px] font-technical tracking-widest text-primary">{t("dashboard.eventsLog")}</span>
+               <span className="text-[9px] font-technical text-foreground/30 border border-foreground/10 px-1">{t("dashboard.synchronization")} {t("dashboard.active")}</span>
+            </div>
+
+            <div className="flex-1 p-4 flex flex-col">
+              <PomodoroTimer />
+            </div>
           </div>
         </div>
-        
+
+        {/* RIGHT COLUMN: Pilot Roster (Kanban) */}
+        <div className="xl:col-span-5 h-[calc(100vh-140px)] flex flex-col">
+          <div className="bg-surface/30 border border-surface-border flex-1 flex flex-col">
+            <div className="bg-surface border-b border-surface-border p-2">
+               <span className="text-[10px] font-technical tracking-widest text-foreground/50">[{t("dashboard.pilotRoster")}]</span>
+            </div>
+            <div className="flex-1 p-0 overflow-hidden relative">
+              {/* Tactical grid background overlay */}
+              <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none"></div>
+              <KanbanBoard />
+            </div>
+          </div>
+        </div>
+
       </div>
-      
     </div>
   );
 }

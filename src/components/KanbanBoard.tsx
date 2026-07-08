@@ -12,6 +12,7 @@ import QuizModal from "./QuizModal";
 import TaskModal from "./TaskModal";
 import TaskCompletionModal from "./TaskCompletionModal";
 import LootChestModal from "./LootChestModal";
+import { useI18n } from "@/context/I18nContext";
 
 export default function KanbanBoard() {
   const { user } = useAuth();
@@ -112,10 +113,12 @@ export default function KanbanBoard() {
     setIsQuizOpen(true);
   };
 
+  const { t } = useI18n();
+
   const columns: { id: TaskStatus; title: string; color: string }[] = [
-    { id: "todo", title: "A Fazer", color: "bg-surface" },
-    { id: "in-progress", title: "Estudando", color: "bg-primary/20" },
-    { id: "done", title: "Concluído", color: "bg-emerald-500/20" },
+    { id: "todo", title: t("kanban.todo"), color: "bg-surface" },
+    { id: "in-progress", title: t("kanban.inProgress"), color: "bg-primary/20" },
+    { id: "done", title: t("kanban.done"), color: "bg-emerald-500/20" },
   ];
 
   if (!isLoaded) {
@@ -175,17 +178,17 @@ export default function KanbanBoard() {
                                        </div>
                                        <span className="text-[9px] font-technical text-foreground/40 tracking-widest flex-1">
                                          {task.subject ? `${task.subject.toUpperCase()} // ` : ""}
-                                         {task.difficulty ? `DIFF: ${task.difficulty.toUpperCase()}` : ""}
+                                         {task.difficulty ? `${t("kanban.diff")} ${task.difficulty.toUpperCase()}` : ""}
                                        </span>
                                        
                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                          {task.status !== "done" && (
                                             <>
-                                              <button onClick={() => openQuiz(task.subject || task.title)} className="text-[9px] font-technical text-purple-400 hover:bg-purple-400/20 px-1 border border-transparent hover:border-purple-400/50">QUIZ</button>
-                                              <button onClick={() => moveToDone(task.id)} className="text-[9px] font-technical text-emerald-400 hover:bg-emerald-400/20 px-1 border border-transparent hover:border-emerald-400/50">OK</button>
+                                              <button onClick={() => openQuiz(task.subject || task.title)} className="text-[9px] font-technical text-purple-400 hover:bg-purple-400/20 px-1 border border-transparent hover:border-purple-400/50">{t("kanban.quiz")}</button>
+                                              <button onClick={() => moveToDone(task.id)} className="text-[9px] font-technical text-emerald-400 hover:bg-emerald-400/20 px-1 border border-transparent hover:border-emerald-400/50">{t("kanban.ok")}</button>
                                             </>
                                          )}
-                                         <button onClick={() => deleteTask(task.id)} className="text-[9px] font-technical text-red-500 hover:bg-red-500/20 px-1 border border-transparent hover:border-red-500/50">DEL</button>
+                                         <button onClick={() => deleteTask(task.id)} className="text-[9px] font-technical text-red-500 hover:bg-red-500/20 px-1 border border-transparent hover:border-red-500/50">{t("kanban.del")}</button>
                                        </div>
                                     </div>
                                     
@@ -213,7 +216,7 @@ export default function KanbanBoard() {
                            onClick={() => setIsTaskModalOpen(true)}
                            className="mt-auto border border-dashed border-surface-border text-foreground/40 hover:text-primary hover:border-primary p-2 text-[10px] font-technical tracking-widest flex justify-center items-center gap-2 transition-colors"
                          >
-                           <Plus className="w-3 h-3" /> ADD DIRECTIVE
+                           <Plus className="w-3 h-3" /> {t("kanban.addDirective")}
                          </button>
                       )}
                     </div>

@@ -119,70 +119,75 @@ export default function PomodoroTimer() {
           </div>
         </div>
 
-        {/* Mascot / Radar Area */}
-        <div className="flex-1 flex flex-col items-center justify-center relative">
-          
-          <div className="relative w-48 h-48 flex items-center justify-center border-2 border-dashed border-surface-border rounded-full p-4 mb-6">
-            <div className={`absolute inset-0 rounded-full border border-primary/30 ${isRunning && !isBreak ? 'animate-ping opacity-20' : 'opacity-0'}`} />
+        <div className="relative group">
+          <div className={`absolute -inset-8 bg-gradient-to-r ${isBreak ? 'from-blue-500/10 to-transparent' : 'from-primary/10 to-transparent'} blur-2xl opacity-50`}></div>
+          <motion.div 
+            className={`text-8xl md:text-9xl font-technical tracking-tighter tabular-nums leading-none ${isBreak ? 'text-blue-400' : 'text-primary'}`}
+            animate={{ 
+              textShadow: isRunning ? `0 0 20px ${isBreak ? 'rgba(96,165,250,0.5)' : 'rgba(239,68,68,0.5)'}` : '0 0 0px rgba(0,0,0,0)'
+            }}
+          >
+            {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+          </motion.div>
+          <div className="absolute -top-4 -left-8 w-4 h-4 border-t-2 border-l-2 border-surface-border"></div>
+          <div className="absolute -bottom-4 -right-8 w-4 h-4 border-b-2 border-r-2 border-surface-border"></div>
+        </div>
+
+        <div className="relative w-full max-w-[200px] aspect-square mt-4">
+            <div className={`absolute inset-0 rounded-full border border-dashed ${isRunning ? 'border-primary animate-[spin_10s_linear_infinite]' : 'border-surface-border'}`}></div>
+            <div className="absolute inset-4 rounded-full border border-surface-border/50"></div>
             
-            <div className={`w-full h-full flex items-center justify-center transition-all duration-1000 ${
-                isRunning && !isBreak 
-                  ? 'animate-bounce scale-125' 
-                  : isBreak 
-                    ? 'grayscale opacity-70 animate-pulse'
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-full h-[1px] bg-surface-border/30"></div>
+              <div className="h-full w-[1px] bg-surface-border/30 absolute"></div>
+            </div>
+
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className={`transition-all duration-500 ${
+                  isRunning && !isBreak 
+                    ? 'scale-125 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]' 
                     : 'grayscale opacity-50'
               }`}>
               <SpriteAnimator 
-                src={`/mascots/sprites/${getActiveEvolution(activePetId || "gato_planta", Math.max(1, Math.floor((level || 1) / 2))).id}_${isRunning && !isBreak ? 'attack' : 'idle'}.png`} 
+                src={`/mascots/sprites/${getActiveEvolution(inventoryPetId || activePetId || "gato_planta", Math.max(1, Math.floor((level || 1) / 2))).id}_${isRunning && !isBreak ? 'attack' : 'idle'}.png`} 
                 className="w-32 h-32"
                 frameCount={4}
                 fps={isRunning && !isBreak ? 12 : 6}
               />
+              </div>
             </div>
-            
-            {/* Crosshair Overlay */}
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-30">
-              <div className="w-full h-[1px] bg-foreground absolute"></div>
-              <div className="h-full w-[1px] bg-foreground absolute"></div>
-            </div>
-          </div>
-
-          <div className={`font-mono font-black mb-8 tracking-widest transition-all duration-700 ${isRunning && !isBreak ? "text-8xl text-primary" : "text-5xl text-foreground"}`}>
-            {formatTime(timeLeft)}
-          </div>
-
-          <div className="flex gap-4">
-            <button
-              onClick={toggleTimer}
-              className={`px-8 py-3 font-technical font-bold text-sm tracking-widest border transition-colors ${
-                isRunning 
-                  ? "border-red-500/50 text-red-500 hover:bg-red-500/10" 
-                  : "border-primary bg-primary/10 text-primary hover:bg-primary text-white hover:text-white"
-              }`}
-            >
-              {isRunning ? "[ ABORT ]" : "[ EXECUTE ]"}
-            </button>
-            
-            <button
-              onClick={resetTimer}
-              className="px-4 py-3 font-technical text-sm tracking-widest border border-surface-border text-foreground/50 hover:text-foreground hover:bg-surface-border transition-colors"
-            >
-              [ RESET ]
-            </button>
-          </div>
-          
-          <div className="mt-8 border-t border-surface-border w-full pt-4">
-             <p className={`text-[10px] font-technical uppercase tracking-widest text-center transition-all ${isRunning && !isBreak ? "text-primary animate-pulse" : "text-foreground/30"}`}>
-               {isRunning && !isBreak 
-                 ? ">> NEURAL LINK ACTIVE // TRAINING PROTOCOL ENGAGED" 
-                 : isBreak 
-                   ? ">> SYSTEM COOLING // AWAITING REBOOT" 
-                   : ">> SYSTEM STANDBY // READY FOR EXECUTION"}
-             </p>
-          </div>
-
         </div>
+
+        <div className="flex gap-4 mt-4 w-full max-w-xs">
+          <button
+            onClick={toggleTimer}
+            className={`flex-1 py-3 text-xs font-technical font-bold tracking-widest transition-colors ${
+              isRunning
+                ? "bg-transparent border-2 border-red-500/50 text-red-500 hover:bg-red-500/10"
+                : "bg-primary text-white hover:bg-primary/90 border-2 border-primary"
+            }`}
+          >
+            {isRunning ? t("timer.abort") : t("timer.execute")}
+          </button>
+          
+          <button
+            onClick={resetTimerState}
+            className="w-16 flex items-center justify-center border-2 border-surface-border text-foreground/50 hover:text-foreground hover:border-foreground/30 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
+
       </div>
+
+      <div className="mt-auto pt-4 border-t border-surface-border/50 font-mono text-[9px] text-foreground/30 flex flex-col gap-1">
+        <p className={isRunning && !isBreak ? "text-primary animate-pulse" : ""}>
+          {isRunning 
+            ? (!isBreak ? t("timer.msgActive") : t("timer.msgCooling"))
+            : t("timer.msgStandby")}
+        </p>
+      </div>
+
     </div>
   );
 }
