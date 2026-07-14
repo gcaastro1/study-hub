@@ -1,19 +1,13 @@
 "use client";
 
-import { useAppSelector } from "@/store";
 import { useAuth } from "@/context/AuthContext";
-import { Trophy, Flame, User, LogIn, LogOut, Maximize, Minimize } from "lucide-react";
-import { motion } from "framer-motion";
+import { User, LogIn, LogOut, Maximize, Minimize } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function Header() {
-  const { xp, level, isLoaded } = useAppSelector(state => state.player);
   const { user, signInWithGoogle, logout } = useAuth();
   const [isFullscreen, setIsFullscreen] = useState(false);
   
-  const currentLevelXp = xp % 500;
-  const progressPercentage = (currentLevelXp / 500) * 100;
-
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -51,8 +45,7 @@ export default function Header() {
               {user ? user.displayName : "Visitante"}
             </h1>
             <p className="text-sm text-foreground/60 flex items-center gap-1">
-              <Flame className="w-4 h-4 text-orange-500" />
-              {user ? "Focado na Nuvem!" : "Faça login para salvar o XP"}
+              {user ? "Focado na Nuvem!" : "Faça login para salvar suas tarefas"}
             </p>
           </div>
         </div>
@@ -66,25 +59,8 @@ export default function Header() {
         </button>
       </div>
 
-      <div className="flex-1 max-w-md w-full mx-0 md:mx-4">
-        <div className="flex justify-between items-end mb-2">
-          <div className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-yellow-400" />
-            <span className="font-bold text-lg">Nível {level}</span>
-          </div>
-          <span className="text-sm font-medium text-foreground/80">
-            {xp} XP <span className="text-foreground/40">/ {(level) * 500}</span>
-          </span>
-        </div>
-        
-        <div className="h-4 w-full bg-surface-border rounded-full overflow-hidden relative border border-white/5">
-          <motion.div 
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 to-pink-500 rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPercentage}%` }}
-            transition={{ duration: 1, ease: "easeOut" }}
-          />
-        </div>
+      <div className="flex-1 max-w-md w-full mx-0 md:mx-4 hidden md:flex">
+        {/* Espaço reservado para o Player do Spotify ou algo no futuro */}
       </div>
 
       <div className="flex items-center gap-3">

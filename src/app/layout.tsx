@@ -3,8 +3,6 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import StoreProvider from "@/store/StoreProvider";
-import GamificationLoader from "@/store/GamificationLoader";
-import { FlashcardProvider } from "@/context/FlashcardContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -21,6 +19,8 @@ export const metadata: Metadata = {
   description: "Transform your study routine into an RPG adventure",
 };
 
+import { ThemeProvider } from "next-themes";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,15 +28,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className={`${inter.variable} ${mono.variable} min-h-full flex flex-col md:flex-row antialiased`} suppressHydrationWarning>
-        <AuthProvider>
-          <StoreProvider>
-            <GamificationLoader />
-            <FlashcardProvider>
+      <body className={`${inter.variable} ${mono.variable} min-h-full flex flex-col md:flex-row antialiased bg-background text-foreground`} suppressHydrationWarning>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>
+            <StoreProvider>
               {children}
-            </FlashcardProvider>
-          </StoreProvider>
-        </AuthProvider>
+            </StoreProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

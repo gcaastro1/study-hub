@@ -2,21 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Store, BrainCircuit, BarChart2, Layers, Globe, Crown } from "lucide-react";
-import { useAppSelector } from "@/store";
+import { LayoutDashboard, BrainCircuit } from "lucide-react";
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { equippedTheme } = useAppSelector(state => state.inventory);
 
   const NAV_ITEMS = [
     { name: "Painel", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Mascote", href: "/pet", icon: Crown },
-    { name: "Analytics", href: "/analytics", icon: BarChart2 },
-    { name: "Leaderboard", href: "/leaderboard", icon: Globe },
-    { name: "Flashcards", href: "/flashcards", icon: Layers },
-    { name: "Quizzes", href: "/quizzes", icon: BrainCircuit },
-    { name: "Loja", href: "/store", icon: Store },
   ];
 
   return (

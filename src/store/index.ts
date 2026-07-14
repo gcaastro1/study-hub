@@ -1,13 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import playerReducer from './slices/playerSlice';
-import inventoryReducer from './slices/inventorySlice';
 import tasksReducer from './slices/tasksSlice';
 
 export const store = configureStore({
   reducer: {
-    player: playerReducer,
-    inventory: inventoryReducer,
     tasks: tasksReducer,
   },
   middleware: (getDefaultMiddleware) =>

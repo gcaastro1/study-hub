@@ -1,38 +1,44 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useAppDispatch } from "@/store";
-import { addXpThunk, updateStatsThunk } from "@/store/thunks";
 import { useAuth } from "@/context/AuthContext";
-import { useAppSelector } from "@/store";
-import SpriteAnimator from "@/components/SpriteAnimator";
-import { PET_SPECIES, getActiveEvolution } from "@/lib/pets";
-import { Play, Pause, RotateCcw, RefreshCw, Timer, Music, CloudRain, VolumeX } from "lucide-react";
+import { RefreshCw, Play, Pause, Settings, Target, Zap, Clock, Disc } from "lucide-react";
 import { motion } from "framer-motion";
 import { useI18n } from "@/context/I18nContext";
 
+type SessionType = "work" | "shortBreak" | "longBreak";
+
 export default function PomodoroTimer() {
   const { user } = useAuth();
-  const dispatch = useAppDispatch();
-  const { level } = useAppSelector(state => state.player);
-  const { activePetId } = useAppSelector(state => state.inventory);
   const { t } = useI18n();
   
   const WORK_TIME = 25 * 60;
-  const BREAK_TIME = 5 * 60;
+  const SHORT_BREAK_TIME = 5 * 60;
+  const LONG_BREAK_TIME = 15 * 60;
+  const MAX_CYCLES = 4;
   
+  const [sessionType, setSessionType] = useState<SessionType>("work");
   const [timeLeft, setTimeLeft] = useState(WORK_TIME);
   const [isRunning, setIsRunning] = useState(false);
-  const [isBreak, setIsBreak] = useState(false);
-  const [soundscape, setSoundscape] = useState<"none" | "rain" | "lofi">("none");
+  const [cycleProgress, setCycleProgress] = useState(1);
   
+  // Dummy stats (in a real app, these would come from the backend/Redux)
+  const [stats, setStats] = useState({
+    sessionsToday: 0,
+    focusTimeToday: 0, // in minutes
+    allTimeSessions: 0
+  });
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const SOUND_URLS = {
-    none: "",
-    rain: "https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg",
-    lofi: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"
-  };
+  // Set time when session changes manually
+  useEffect(() => {
+    if (!isRunning) {
+      if (sessionType === "work") setTimeLeft(WORK_TIME);
+      if (sessionType === "shortBreak") setTimeLeft(SHORT_BREAK_TIME);
+      if (sessionType === "longBreak") setTimeLeft(LONG_BREAK_TIME);
+    }
+  }, [sessionType, isRunning]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -41,46 +47,45 @@ export default function PomodoroTimer() {
       interval = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
+    } else if (isRunning && timeLeft === 0) {
+      // Session finished logic
+      setIsRunning(false);
       
-      if (audioRef.current && soundscape !== "none") {
-        audioRef.current.play().catch(e => console.log("Audio autoplay prevented", e));
-      }
-    } else {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      
-      if (isRunning && timeLeft === 0) {
-        setIsRunning(false);
-        if (!isBreak) {
-          if (user) {
-            dispatch(addXpThunk({ uid: user.uid, amount: 100, actionType: "POMODORO" }));
-            dispatch(updateStatsThunk({ 
-              uid: user.uid, 
-              updates: { 
-                pomodorosCompleted: 1,
-                totalStudyTime: WORK_TIME
-              } 
-            }));
-          }
-          setIsBreak(true);
-          setTimeLeft(BREAK_TIME);
+      if (sessionType === "work") {
+        // Increment stats
+        setStats(s => ({
+          ...s,
+          sessionsToday: s.sessionsToday + 1,
+          allTimeSessions: s.allTimeSessions + 1,
+          focusTimeToday: s.focusTimeToday + 25
+        }));
+
+        if (cycleProgress >= MAX_CYCLES) {
+          setSessionType("longBreak");
+          setTimeLeft(LONG_BREAK_TIME);
+          setCycleProgress(1); // Reset cycle after long break
         } else {
-          setIsBreak(false);
-          setTimeLeft(WORK_TIME);
+          setSessionType("shortBreak");
+          setTimeLeft(SHORT_BREAK_TIME);
+          setCycleProgress(c => c + 1);
         }
+      } else {
+        // Break finished, go back to work
+        setSessionType("work");
+        setTimeLeft(WORK_TIME);
       }
     }
     
     return () => clearInterval(interval);
-  }, [isRunning, timeLeft, isBreak, dispatch, soundscape, user]);
+  }, [isRunning, timeLeft, sessionType, cycleProgress]);
 
   const toggleTimer = () => setIsRunning(!isRunning);
   
   const resetTimer = () => {
     setIsRunning(false);
-    setIsBreak(false);
-    setTimeLeft(WORK_TIME);
+    if (sessionType === "work") setTimeLeft(WORK_TIME);
+    if (sessionType === "shortBreak") setTimeLeft(SHORT_BREAK_TIME);
+    if (sessionType === "longBreak") setTimeLeft(LONG_BREAK_TIME);
   };
 
   const formatTime = (seconds: number) => {
@@ -89,107 +94,115 @@ export default function PomodoroTimer() {
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  const progress = isBreak 
-    ? ((BREAK_TIME - timeLeft) / BREAK_TIME) * 100 
-    : ((WORK_TIME - timeLeft) / WORK_TIME) * 100;
+  const getTotalTimeForSession = () => {
+    if (sessionType === "work") return WORK_TIME;
+    if (sessionType === "shortBreak") return SHORT_BREAK_TIME;
+    return LONG_BREAK_TIME;
+  };
+
+  const totalTime = getTotalTimeForSession();
+  const progress = ((totalTime - timeLeft) / totalTime) * 100;
+  
+  // SVG Circle calculations
+  const radius = 120;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+  const getSessionName = (type: SessionType) => {
+    if (type === "work") return "Work";
+    if (type === "shortBreak") return "Short Break";
+    return "Long Break";
+  };
+
+  const getNextSession = () => {
+    if (sessionType === "work") {
+      return cycleProgress >= MAX_CYCLES ? "Long Break" : "Short Break";
+    }
+    return "Work";
+  };
 
   return (
-    <div className={`flex flex-col h-full bg-surface border border-surface-border p-4 relative ${isRunning && !isBreak ? "fixed inset-0 z-50 bg-background/95 backdrop-blur-3xl flex items-center justify-center p-12" : ""}`}>
-      {soundscape !== "none" && (
-        <audio ref={audioRef} src={SOUND_URLS[soundscape]} loop />
-      )}
-      
-      {/* Background Progress Grid */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute bottom-0 left-0 w-full bg-primary/10 transition-all duration-1000 border-t border-primary/20" style={{ height: `${progress}%` }} />
-      </div>
-
-      <div className={`relative z-10 flex flex-col h-full w-full ${isRunning && !isBreak ? "max-w-2xl" : ""}`}>
+    <div className="flex flex-col gap-6 w-full">
+      {/* Main Timer Card */}
+      <div className="glass-panel flex flex-col items-center py-10 relative">
+        <h3 className="text-sm font-medium text-foreground/60 mb-6">Session Type</h3>
         
-        {/* Header Controls */}
-        <div className="flex items-center justify-between border-b border-surface-border pb-3 mb-6">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-technical text-foreground/50">MODULE</span>
-            <h3 className={`text-sm font-technical font-bold ${isBreak ? "text-emerald-500" : "text-foreground"}`}>
-              {isBreak ? "[ COOLING PHASE ]" : "[ SYNCHRONIZATION ]"}
-            </h3>
-          </div>
-          <div className="flex gap-1 border border-surface-border p-1 bg-background">
-            <button onClick={() => setSoundscape("none")} className={`px-2 py-1 text-[10px] font-technical transition-colors ${soundscape === "none" ? "bg-primary text-white" : "text-foreground/50 hover:text-foreground"}`}>MUTE</button>
-            <button onClick={() => setSoundscape("rain")} className={`px-2 py-1 text-[10px] font-technical transition-colors ${soundscape === "rain" ? "bg-primary text-white" : "text-foreground/50 hover:text-foreground"}`}>NOISE</button>
-            <button onClick={() => setSoundscape("lofi")} className={`px-2 py-1 text-[10px] font-technical transition-colors ${soundscape === "lofi" ? "bg-primary text-white" : "text-foreground/50 hover:text-foreground"}`}>BGM</button>
-          </div>
+        {/* Mode Toggles */}
+        <div className="flex gap-2 p-1 border border-surface-border rounded-full bg-background mb-10">
+          <button 
+            onClick={() => { setSessionType("work"); setIsRunning(false); }}
+            className={`px-4 py-2 text-xs font-semibold rounded-full transition-colors flex items-center gap-2 ${sessionType === "work" ? "bg-primary text-background" : "text-foreground/60 hover:text-foreground"}`}
+          >
+            <Target className="w-3 h-3" />
+            Work (25m)
+          </button>
+          <button 
+            onClick={() => { setSessionType("shortBreak"); setIsRunning(false); }}
+            className={`px-4 py-2 text-xs font-semibold rounded-full transition-colors flex items-center gap-2 ${sessionType === "shortBreak" ? "bg-primary text-background" : "text-foreground/60 hover:text-foreground"}`}
+          >
+            <Zap className="w-3 h-3" />
+            Short Break (5m)
+          </button>
+          <button 
+            onClick={() => { setSessionType("longBreak"); setIsRunning(false); }}
+            className={`px-4 py-2 text-xs font-semibold rounded-full transition-colors flex items-center gap-2 ${sessionType === "longBreak" ? "bg-primary text-background" : "text-foreground/60 hover:text-foreground"}`}
+          >
+            <Settings className="w-3 h-3" />
+            Long Break (15m)
+          </button>
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center w-full gap-8">
-          <div className="relative group">
-            <div className={`absolute -inset-8 bg-gradient-to-r ${isBreak ? 'from-blue-500/10 to-transparent' : 'from-primary/10 to-transparent'} blur-2xl opacity-50`}></div>
-            <motion.div 
-              className={`text-7xl md:text-8xl font-technical tracking-tighter tabular-nums leading-none ${isBreak ? 'text-blue-400' : 'text-primary'}`}
-              animate={{ 
-                textShadow: isRunning ? `0 0 20px ${isBreak ? 'rgba(96,165,250,0.5)' : 'rgba(239,68,68,0.5)'}` : '0 0 0px rgba(0,0,0,0)'
+        {/* Circular Timer Display */}
+        <div className="relative flex flex-col items-center justify-center mb-8 w-[280px] h-[280px]">
+          <svg width="280" height="280" className="transform -rotate-90 absolute">
+            {/* Background Track */}
+            <circle 
+              cx="140" cy="140" r={radius} 
+              fill="transparent" 
+              stroke="var(--surface-border)" 
+              strokeWidth="8" 
+            />
+            {/* Progress Track */}
+            <circle 
+              cx="140" cy="140" r={radius} 
+              fill="transparent" 
+              stroke={sessionType === "work" ? "var(--color-danger)" : "var(--color-success)"} 
+              strokeWidth="8" 
+              strokeLinecap="round"
+              style={{
+                strokeDasharray: circumference,
+                strokeDashoffset: strokeDashoffset,
+                transition: "stroke-dashoffset 1s linear"
               }}
-            >
+            />
+          </svg>
+          
+          <div className="z-10 flex flex-col items-center">
+            <span className={`text-sm font-bold mb-2 ${sessionType === "work" ? "text-red-500" : "text-emerald-500"}`}>
+              {sessionType === "work" ? "Focus Time" : "Break Time"}
+            </span>
+            <div className="text-7xl font-sans font-light tracking-tighter tabular-nums text-foreground">
               {formatTime(timeLeft)}
-            </motion.div>
-            <div className="absolute -top-4 -left-8 w-4 h-4 border-t-2 border-l-2 border-surface-border"></div>
-            <div className="absolute -bottom-4 -right-8 w-4 h-4 border-b-2 border-r-2 border-surface-border"></div>
-          </div>
-
-          <div className="relative w-full max-w-[180px] aspect-square mt-2">
-              <div className={`absolute inset-0 rounded-full border border-dashed ${isRunning ? 'border-primary animate-[spin_10s_linear_infinite]' : 'border-surface-border'}`}></div>
-              <div className="absolute inset-4 rounded-full border border-surface-border/50"></div>
-              
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-full h-[1px] bg-surface-border/30"></div>
-                <div className="h-full w-[1px] bg-surface-border/30 absolute"></div>
-              </div>
-
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className={`transition-all duration-500 ${
-                    isRunning && !isBreak 
-                      ? 'scale-125 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]' 
-                      : 'grayscale opacity-50'
-                }`}>
-                <SpriteAnimator 
-                  src={`/mascots/sprites/${getActiveEvolution(activePetId || "gato_planta", Math.max(1, Math.floor((level || 1) / 2))).id}_${isRunning && !isBreak ? 'attack' : 'idle'}.png`} 
-                  className="w-24 h-24"
-                  frameCount={4}
-                  fps={isRunning && !isBreak ? 12 : 6}
-                />
-                </div>
-              </div>
-          </div>
-
-          <div className="flex gap-4 mt-2 w-full max-w-xs">
-            <button
-              onClick={toggleTimer}
-              className={`flex-1 py-3 text-xs font-technical font-bold tracking-widest transition-colors ${
-                isRunning
-                  ? "bg-transparent border-2 border-red-500/50 text-red-500 hover:bg-red-500/10"
-                  : "bg-primary text-white hover:bg-primary/90 border-2 border-primary"
-              }`}
-            >
-              {isRunning ? t("timer.abort") : t("timer.execute")}
-            </button>
-            
-            <button
-              onClick={resetTimer}
-              className="w-16 flex items-center justify-center border-2 border-surface-border text-foreground/50 hover:text-foreground hover:border-foreground/30 transition-colors"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
+            </div>
           </div>
         </div>
 
-      </div>
-
-      <div className="mt-auto pt-4 border-t border-surface-border/50 font-mono text-[9px] text-foreground/30 flex flex-col gap-1">
-        <p className={isRunning && !isBreak ? "text-primary animate-pulse" : ""}>
-          {isRunning 
-            ? (!isBreak ? t("timer.msgActive") : t("timer.msgCooling"))
-            : t("timer.msgStandby")}
-        </p>
+        {/* Action Buttons */}
+        <div className="flex gap-4">
+          <button
+            onClick={toggleTimer}
+            className="flex items-center gap-2 px-8 py-3 bg-primary text-background rounded-xl font-bold hover:bg-primary-hover transition-colors shadow-lg"
+          >
+            {isRunning ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
+            {isRunning ? "Pause" : "Start"}
+          </button>
+          <button
+            onClick={resetTimer}
+            className="flex items-center justify-center p-3 border border-surface-border text-foreground/60 rounded-xl hover:bg-surface-border hover:text-foreground transition-colors"
+          >
+            <RefreshCw className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
     </div>

@@ -1,76 +1,35 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0f1115; /* Very dark tech grey */
-  --foreground: #e2e8f0; /* Crisp light grey */
+  /* Light Mode - Clean, Notion-like aesthetic */
+  --background: #ffffff; 
+  --foreground: #111827; /* Gray 900 */
   
-  --primary: #a81a24; /* Crimson Red */
-  --primary-hover: #8c111a;
+  --primary: #111827; /* Very dark gray almost black */
+  --primary-hover: #374151; /* Gray 700 */
   
-  --surface: #14161b; /* Solid dark grey panels */
-  --surface-border: #2d3748; /* Subtle grid lines */
-  
-  --xp-bar: #a81a24; /* Solid crimson */
-  
-  --font-sans: var(--font-inter), sans-serif;
-  --font-mono: var(--font-mono), monospace;
-  
-  /* Pet Element Colors */
-  --element-plant: #10b981;
-  --element-water: #3b82f6;
-  --element-fire: #ef4444;
-  --element-ice: #06b6d4;
-  --element-electric: #eab308;
-}
-
-[data-theme="cyberpunk"] {
-  --background: #0d0221;
-  --foreground: #0ff;
-  --primary: #f0f;
-  --primary-hover: #d0d;
-  --surface: rgba(20, 0, 40, 0.6);
-  --surface-border: rgba(0, 255, 255, 0.2);
-  --xp-bar: linear-gradient(90deg, #0ff, #f0f);
-  --bg-gradient-1: rgba(0, 255, 255, 0.15);
-  --bg-gradient-2: rgba(255, 0, 255, 0.1);
-}
-
-[data-theme="forest"], [data-theme="ocean"], [data-theme="sunset"] {
-  /* Override other themes to just use the sci-fi look for now, or we can keep them */
-  --background: #0f1115;
-  --foreground: #e2e8f0;
-  --primary: #a81a24;
-  --primary-hover: #8c111a;
-  --surface: #14161b;
-  --surface-border: #2d3748;
-}
-
-[data-theme="forest"] {
-  --background: #0f1a15;
-  --foreground: #d1fae5;
-  --primary: #10b981;
-  --primary-hover: #059669;
-  --surface: rgba(6, 78, 59, 0.4);
-  --surface-border: rgba(16, 185, 129, 0.2);
-  --xp-bar: linear-gradient(90deg, #10b981, #34d399);
-  --bg-gradient-1: rgba(16, 185, 129, 0.15);
-  --bg-gradient-2: rgba(5, 150, 105, 0.1);
-}
-
-[data-theme="sunset"]:root {
-  --background: #0f1115; /* Very dark tech grey */
-  --foreground: #e2e8f0; /* Crisp light grey */
-  
-  --primary: #a81a24; /* Crimson Red */
-  --primary-hover: #8c111a;
-  
-  --surface: #14161b; /* Solid dark grey panels */
-  --surface-border: #2d3748; /* Subtle grid lines */
-  
-  --xp-bar: #a81a24; /* Solid crimson */
+  --surface: #ffffff; /* White cards */
+  --surface-border: #e5e7eb; /* Gray 200 borders */
   
   --font-sans: var(--font-inter), sans-serif;
   --font-mono: var(--font-mono), monospace;
+  
+  /* Status Colors */
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+}
+
+.dark {
+  /* Dark Mode - Clean dark aesthetic */
+  --background: #0f1115; 
+  --foreground: #f3f4f6; /* Gray 100 */
+  
+  --primary: #ffffff; 
+  --primary-hover: #e5e7eb;
+  
+  --surface: #1f232b; 
+  --surface-border: #374151; /* Gray 700 borders */
 }
 
 @theme inline {
@@ -87,53 +46,42 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Tactical Background Grid */
+/* Subtle background pattern for clean aesthetic */
 .bg-grid-pattern {
   background-size: 40px 40px;
-  background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-image: linear-gradient(to right, rgba(128,128,128,0.05) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(128,128,128,0.05) 1px, transparent 1px);
 }
 
-/* Flat Sci-Fi Panel */
 .glass-panel {
   background: var(--surface);
   border: 1px solid var(--surface-border);
-  border-radius: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
 }
 
-/* Technical Heading Font */
+/* Modern clean heading font */
 .font-technical {
-  font-family: var(--font-mono);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-/* Chamfered/Angled cut for Headers */
-.chamfered-header {
-  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 100%, 0 100%);
-}
-
-.chamfered-box {
-  clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 0 100%);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(128, 128, 128, 0.2);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(128, 128, 128, 0.4);
 }
-@keyframes spriteTranslate { 
-  from { transform: translateX(0); } 
-  to { transform: translateX(-100%); } 
-}  
