@@ -100,29 +100,30 @@ export default function KanbanBoard() {
 
   return (
     <>
-      <div className="flex-1 flex flex-col h-full bg-background relative overflow-hidden font-sans">
+      <div className="flex-1 flex flex-col h-full bg-transparent relative overflow-hidden font-sans">
         <DragDropContext onDragEnd={onDragEnd}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 flex-1 h-full border border-surface-border">
+          {/* Scroll Horizontal Adicionado no grid */}
+          <div className="grid grid-flow-col auto-cols-[100%] md:auto-cols-[minmax(300px,1fr)] gap-4 flex-1 h-full overflow-x-auto overflow-y-hidden touch-pan-x snap-x snap-mandatory pb-4 px-4 pt-4 scrollbar-thin">
             {columns.map((col, i) => (
               <Droppable key={col.id} droppableId={col.id}>
                 {(provided, snapshot) => (
                   <div 
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`flex flex-col bg-surface/30 transition-colors ${
-                      snapshot.isDraggingOver ? "bg-surface" : ""
-                    } ${i !== 0 ? "border-l border-surface-border" : ""}`}
+                    className={`flex flex-col snap-center h-full glass-panel backdrop-blur-md transition-all duration-300 ${
+                      snapshot.isDraggingOver ? "bg-surface/80 border-primary/50 shadow-lg" : "bg-surface/40"
+                    }`}
                   >
-                    <div className="bg-surface border-b border-surface-border p-2">
-                      <h3 className="font-technical text-[10px] text-foreground/50 tracking-widest flex justify-between">
-                        [{col.title.toUpperCase()}]
-                        <span className="text-primary font-bold">
-                          {tasks.filter((t) => t.status === col.id).length.toString().padStart(2, '0')}
+                    <div className="bg-surface/50 backdrop-blur-sm border-b border-surface-border p-3 flex-shrink-0">
+                      <h3 className="font-technical text-xs font-bold text-foreground/70 flex justify-between items-center">
+                        {col.title.toUpperCase()}
+                        <span className="text-primary bg-primary/10 px-2 py-0.5 rounded-full font-bold text-[10px]">
+                          {tasks.filter((t) => t.status === col.id).length}
                         </span>
                       </h3>
                     </div>
                     
-                    <div className="flex-1 flex flex-col p-2 gap-2 overflow-y-auto min-h-[300px]">
+                    <div className="flex-1 flex flex-col p-3 gap-3 overflow-y-auto min-h-[400px]">
                       <AnimatePresence>
                         {tasks
                           .filter((t) => t.status === col.id)
@@ -135,14 +136,14 @@ export default function KanbanBoard() {
                                     {...provided.draggableProps}
                                     style={{
                                       ...provided.draggableProps.style,
-                                      opacity: snapshot.isDragging ? 0.9 : 1
+                                      opacity: snapshot.isDragging ? 0.95 : 1
                                     }}
-                                    className={`bg-background border flex flex-col group transition-all relative ${
-                                      snapshot.isDragging ? "border-primary shadow-[0_0_15px_rgba(168,26,36,0.2)] z-50" : "border-surface-border hover:border-foreground/30"
+                                    className={`bg-surface/80 backdrop-blur-sm border rounded-xl flex flex-col group transition-all duration-200 relative overflow-hidden ${
+                                      snapshot.isDragging ? "border-primary shadow-xl scale-105 z-50 ring-2 ring-primary/20" : "border-surface-border hover:border-foreground/20 shadow-sm hover:shadow-md"
                                     }`}
                                   >
-                                    <div className="flex border-b border-surface-border/50 bg-surface/50 p-1.5 items-center gap-2">
-                                       <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing text-foreground/20 hover:text-primary">
+                                    <div className="flex border-b border-surface-border/30 bg-background/30 p-2 items-center gap-2">
+                                       <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing text-foreground/30 hover:text-primary transition-colors p-1 -ml-1 rounded hover:bg-surface">
                                          <GripVertical className="w-3 h-3" />
                                        </div>
                                        <span className="text-[9px] font-technical text-foreground/40 tracking-widest flex-1">

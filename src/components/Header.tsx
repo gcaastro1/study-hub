@@ -1,97 +1,79 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { User, LogIn, LogOut, Maximize, Minimize } from "lucide-react";
+import { User, LogIn, LogOut, Sun, Moon } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function Header() {
   const { user, signInWithGoogle, logout } = useAuth();
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const [time, setTime] = useState(new Date());
+
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    setMounted(true);
+    const interval = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch((err) => {
-        console.error(`Erro ao tentar tela cheia: ${err.message}`);
-      });
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    }
-  };
-
   return (
-    <header className="glass-panel p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-      <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
-        <div className="flex items-center gap-3">
-          {user?.photoURL ? (
-            <img src={user.photoURL} alt="Profile" className="w-12 h-12 rounded-full border border-primary/50" />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center border border-primary/50">
-              <User className="text-primary w-6 h-6" />
-            </div>
-          )}
-          
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">
-              {user ? user.displayName : "Visitante"}
-            </h1>
-            <p className="text-sm text-foreground/60 flex items-center gap-1">
-              {user ? "Focado na Nuvem!" : "Faça login para salvar suas tarefas"}
-            </p>
+    <header className="glass-panel backdrop-blur-md sticky top-0 z-40 p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t-0 border-x-0 rounded-none sm:rounded-2xl sm:mt-4 sm:mx-6 border-surface-border bg-surface/80">
+      
+      <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-start">
+        <h1 className="text-xl font-bold tracking-tight font-technical flex items-center gap-2">
+          Study Hub
+        </h1>
+      </div>
+
+      <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-end">
+        {mounted && (
+          <div className="text-sm font-medium text-foreground/60 border border-surface-border px-3 py-1.5 rounded-full bg-surface/50 shadow-sm hidden md:block">
+            {format(time, "HH:mm:ss", { locale: ptBR })}
           </div>
-        </div>
+        )}
 
-        {/* Mobile fullscreen toggle */}
-        <button 
-          onClick={toggleFullscreen}
-          className="md:hidden p-2 rounded-lg bg-surface hover:bg-surface-border text-foreground/70 transition-colors"
-        >
-          {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
-        </button>
-      </div>
-
-      <div className="flex-1 max-w-md w-full mx-0 md:mx-4 hidden md:flex">
-        {/* Espaço reservado para o Player do Spotify ou algo no futuro */}
-      </div>
-
-      <div className="flex items-center gap-3">
-        {/* Desktop fullscreen toggle */}
-        <button 
-          onClick={toggleFullscreen}
-          className="hidden md:flex p-2 rounded-lg bg-surface-border hover:bg-white/10 text-foreground/80 transition-colors"
-          title="Tela Cheia"
-        >
-          {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
-        </button>
-
-        {user ? (
-          <button 
-            onClick={logout}
-            className="flex items-center gap-2 px-4 py-2 bg-surface-border hover:bg-red-500/20 hover:text-red-400 rounded-lg transition-colors text-sm font-medium"
+        {mounted && (
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="p-2 rounded-full border border-surface-border bg-surface/50 text-foreground/60 hover:text-foreground transition-all hover:bg-surface-border"
+            aria-label="Toggle Theme"
           >
-            <LogOut className="w-4 h-4" />
-            Sair
+            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
-        ) : (
+        )}
+
+        {mounted && user ? (
+          <div className="flex items-center gap-2">
+            {user.photoURL ? (
+              <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full border border-surface-border" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/50">
+                <User className="text-primary w-4 h-4" />
+              </div>
+            )}
+            <button 
+              onClick={logout}
+              className="flex items-center gap-2 px-3 py-1.5 bg-surface-border/50 hover:bg-red-500/20 text-foreground/70 hover:text-red-500 border border-surface-border hover:border-red-500/50 rounded-full transition-all text-sm font-medium"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Sair</span>
+            </button>
+          </div>
+        ) : mounted && !user ? (
           <button 
             onClick={signInWithGoogle}
-            className="flex items-center gap-2 px-4 py-2 bg-white text-black hover:bg-gray-200 rounded-lg transition-colors font-medium text-sm md:text-base"
+            className="flex items-center gap-2 px-4 py-1.5 bg-primary text-background hover:bg-primary-hover rounded-full transition-all font-bold text-sm shadow-md"
           >
             <LogIn className="w-4 h-4" />
             Entrar
           </button>
-        )}
+        ) : null}
       </div>
     </header>
   );
 }
-
